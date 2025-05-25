@@ -100,7 +100,7 @@ export default function BazaarListingsPage() {
   useEffect(() => {
     if (itemId) {
       // Get item name from the API
-      fetch(`/api/bazaar/items/all-items`)
+      fetch(`/api/bazaar/items/all`)
         .then(res => res.json())
         .then(items => {
           const item = items.find((i: any) => String(i.id) === String(itemId));
