@@ -1,39 +1,19 @@
-# Application Enhancement Project
 
-This project is set up to work with an existing web application that will be imported from GitHub.
+# Torn RPG Dashboard
 
-## Current Status
-- Awaiting codebase import from GitHub
-- Environment configured with database secrets
-- Ready for enhancement and modification work
+A full-stack web application for tracking Torn RPG stats, company, faction, and bazaar information.
 
-## Available Environment Variables
-- DATABASE_URL
-- PostgreSQL connection details (PGDATABASE, PGHOST, PGPASSWORD, PGPORT, PGUSER)
-- TORN_API_KEY
+## Running on Glitch
 
-## Tech Stack (Expected)
-- Vite build system
-- Frontend framework (TBD based on imported code)
-- Backend implementation (TBD based on imported code)
-- PostgreSQL database
-- Existing styling approach
+This project is configured to work on Glitch with minimal setup:
 
-## Next Steps
-1. Import existing codebase from GitHub
-2. Analyze current application structure
-3. Identify areas for improvement
-4. Implement requested enhancements
-5. Test modifications thoroughly
+1. Import the project from GitHub
+2. Glitch will automatically detect the package.json and install dependencies
+3. The application will start using the commands specified in glitch.json
+4. Your app will be available at the URL provided by Glitch
 
-## Development Guidelines
-- Preserve existing functionality
-- Maintain backward compatibility
-- Focus on incremental improvements
-- Use existing tech stack and architecture
-- Ensure thorough testing before deployment
+### Important Notes for Glitch
 
-## Port Configuration
-- Frontend: Port 5000 (if web application)
-- Backend: Port 8000 (if separate backend service)
-- Host binding: 0.0.0.0 for container compatibility
+- The application runs on port 5000 internally, but Glitch will handle port mapping for you
+- If you need to set environment variables, use the Glitch .env editor
+- The application is set up to use the production build on Glitch by default
