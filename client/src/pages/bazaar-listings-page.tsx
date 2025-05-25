@@ -38,8 +38,9 @@ export default function BazaarListingsPage() {
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Extract itemId directly from URL path using the :itemId parameter
-  const itemId = location.split("/").pop();
+  // Extract itemId from URL path using the :itemId parameter
+  const pathParts = location.split("/");
+  const itemId = pathParts[pathParts.length - 1];
   const [itemName, setItemName] = useState<string | null>(null);
 
   // State for switching between database and live search
@@ -95,11 +96,9 @@ export default function BazaarListingsPage() {
     }
   });
 
-  // Start a live search immediately when the page loads and fetch item name
+  // Fetch item name when itemId changes
   useEffect(() => {
-    if (itemId && searchMode === 'live') {
-      refetchLiveListings();
-      
+    if (itemId) {
       // Get item name from the API
       fetch(`/api/bazaar/items/all-items`)
         .then(res => res.json())
@@ -116,7 +115,14 @@ export default function BazaarListingsPage() {
           setItemName(`Item ${itemId}`);
         });
     }
-  }, [itemId, refetchLiveListings]);
+  }, [itemId]);
+
+  // Start a live search immediately when the page loads in live mode
+  useEffect(() => {
+    if (itemId && searchMode === 'live') {
+      refetchLiveListings();
+    }
+  }, [itemId, searchMode, refetchLiveListings]);
 
   // Get the appropriate listings array based on search mode
   const activeData = searchMode === 'database' ? bazaarData : liveData;
