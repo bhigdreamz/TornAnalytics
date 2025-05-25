@@ -1,0 +1,16 @@
+modules = ["nodejs-20"]
+[workflows]
+runButton = "Start TornAnalytics"
+
+[[workflows.workflow]]
+name = "Start TornAnalytics"
+author = 43123313
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm run dev"
+
+[[ports]]
+localPort = 5000
+externalPort = 80
