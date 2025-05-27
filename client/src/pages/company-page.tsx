@@ -122,7 +122,13 @@ export default function CompanyPage() {
   };
 
   const filteredEmployees = data?.employees.list.filter(employee => {
-    return (statusFilter === "all" || employee.status === statusFilter) &&
+    const lastActionStatus = employee.last_action && typeof employee.last_action === 'object' && 'status' in employee.last_action
+      ? employee.last_action.status
+      : employee.last_action;
+    
+    return (statusFilter === "all" || 
+            employee.status === statusFilter || 
+            lastActionStatus === statusFilter) &&
            (positionFilter === "all" || employee.position === positionFilter) &&
            (searchQuery === "" || 
             employee.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -298,17 +304,14 @@ export default function CompanyPage() {
                       }}
                     >
                       <span>
-                        {statusFilter === "all" ? "All Statuses" : 
-                         statusFilter === "Online" ? "Online" :
-                         statusFilter === "Idle" ? "Idle" :
-                         statusFilter === "Hospital" ? "Hospital" : "Offline"}
+                        {statusFilter === "all" ? "All Statuses" : statusFilter}
                       </span>
                       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="m6 9 6 6 6-6"/>
                       </svg>
                     </div>
 
-                    <div id="company-status-dropdown" className="absolute z-10 w-full mt-1 bg-background border border-border rounded-md shadow-lg hidden">
+                    <div id="company-status-dropdown" className="absolute z-10 w-full mt-1 bg-background border border-border rounded-md shadow-lg hidden max-h-60 overflow-y-auto">
                       <div 
                         className="p-2 hover:bg-accent text-foreground cursor-pointer"
                         onClick={() => {
@@ -353,6 +356,42 @@ export default function CompanyPage() {
                         }}
                       >
                         Hospital
+                      </div>
+                      <div 
+                        className="p-2 hover:bg-accent text-foreground cursor-pointer"
+                        onClick={() => {
+                          setStatusFilter("Traveling");
+                          document.getElementById("company-status-dropdown")?.classList.add("hidden");
+                        }}
+                      >
+                        Traveling
+                      </div>
+                      <div 
+                        className="p-2 hover:bg-accent text-foreground cursor-pointer"
+                        onClick={() => {
+                          setStatusFilter("Jail");
+                          document.getElementById("company-status-dropdown")?.classList.add("hidden");
+                        }}
+                      >
+                        Jail
+                      </div>
+                      <div 
+                        className="p-2 hover:bg-accent text-foreground cursor-pointer"
+                        onClick={() => {
+                          setStatusFilter("Federal");
+                          document.getElementById("company-status-dropdown")?.classList.add("hidden");
+                        }}
+                      >
+                        Federal
+                      </div>
+                      <div 
+                        className="p-2 hover:bg-accent text-foreground cursor-pointer"
+                        onClick={() => {
+                          setStatusFilter("Okay");
+                          document.getElementById("company-status-dropdown")?.classList.add("hidden");
+                        }}
+                      >
+                        Okay
                       </div>
                     </div>
                   </div>
@@ -407,6 +446,7 @@ export default function CompanyPage() {
                 <TableRow className="hover:bg-transparent border-gray-700">
                   <TableHead className="w-[250px]">Employee</TableHead>
                   <TableHead>Position</TableHead>
+                  <TableHead>Last Action</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Effectiveness</TableHead>
                   <TableHead className="text-right">Days</TableHead>
@@ -429,6 +469,12 @@ export default function CompanyPage() {
                         </div>
                       </TableCell>
                       <TableCell>{employee.position}</TableCell>
+                      <TableCell>
+                        {employee.last_action && typeof employee.last_action === 'object' && 'status' in employee.last_action
+                          ? getStatusBadge(employee.last_action.status)
+                          : getStatusBadge(employee.last_action)
+                        }
+                      </TableCell>
                       <TableCell>{getStatusBadge(employee.status)}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end">
@@ -451,7 +497,7 @@ export default function CompanyPage() {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8 text-gray-400">
+                    <TableCell colSpan={7} className="text-center py-8 text-gray-400">
                       {searchQuery || statusFilter !== 'all' || positionFilter !== 'all' 
                         ? "No employees match your filters."
                         : "No employees found in your company."}
