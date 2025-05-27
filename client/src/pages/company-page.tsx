@@ -506,7 +506,7 @@ export default function CompanyPage() {
                       <TableCell>
                         {employee.last_action && typeof employee.last_action === 'object' && 'status' in employee.last_action
                           ? getStatusBadge(employee.last_action.status)
-                          : getStatusBadge(employee.last_action)
+                          : getStatusBadge("Offline")
                         }
                       </TableCell>
                       <TableCell>
