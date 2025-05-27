@@ -6,7 +6,7 @@ import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 export default defineConfig({
   plugins: [
     react(),
-    runtimeErrorOverlay(),
+    // Removed runtime error overlay completely
     ...(process.env.NODE_ENV !== "production" &&
     process.env.REPL_ID !== undefined
       ? [
@@ -16,6 +16,12 @@ export default defineConfig({
         ]
       : []),
   ],
+  server: {
+    hmr: {
+      overlay: false
+    },
+    middlewareMode: false
+  },
   resolve: {
     alias: {
       "@": path.resolve(import.meta.dirname, "client", "src"),
