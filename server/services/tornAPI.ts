@@ -337,7 +337,7 @@ export class TornAPI {
         },
         money: {
           current: data.money_onhand || 0,
-          bank: data.money_inbank || 0,
+          bank: data.city_bank?.amount || 0,
           points: data.points || 0
         },
         // Add the raw financial fields that frontend expects
