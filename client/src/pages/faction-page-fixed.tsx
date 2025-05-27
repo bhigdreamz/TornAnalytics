@@ -149,7 +149,7 @@ export default function FactionPage() {
         <title>Faction Tracking | Byte-Core Vault</title>
         <meta name="description" content="Track your Torn RPG faction members and performance with Byte-Core Vault." />
       </Helmet>
-      
+
       {/* Back to Dashboard Button */}
       <div className="mb-6">
         <Button 
@@ -637,12 +637,15 @@ export default function FactionPage() {
                                   const startDate = new Date(war.start * 1000);
                                   const ourFaction = war.factions.find((f: any) => f.id === faction.id);
                                   const opposingFaction = war.factions.find((f: any) => f.id !== faction.id);
-                                  const ourScore = ourFaction ? ourFaction.score : 0;
-                                  const theirScore = opposingFaction ? opposingFaction.score : 0;
-                                  const isWinning = ourScore > theirScore;
-                                  const isLosing = ourScore < theirScore;
+                                  const currentTime = Math.floor(Date.now() / 1000);
 
-                                  return (
+                                  // Check if war has actually started
+                                  const hasStarted = war.start <= currentTime;
+                                  const isWinning = hasStarted && ourFaction && opposingFaction && ourFaction.score > opposingFaction.score;
+                                  const isLosing = hasStarted && ourFaction && opposingFaction && ourFaction.score < opposingFaction.score;
+                                  const isTied = hasStarted && ourFaction && opposingFaction && ourFaction.score === opposingFaction.score;
+
+                                    return (
                                     <TableRow key={`active-${index}`} className="hover:bg-blue-900/20">
                                       <TableCell className="font-medium">#{war.id}</TableCell>
                                       <TableCell>
@@ -661,15 +664,27 @@ export default function FactionPage() {
                                       </TableCell>
                                       <TableCell>{startDate.toLocaleDateString()}</TableCell>
                                       <TableCell>
-                                        <span className="text-yellow-400">In Progress</span>
+                                        {hasStarted ? (
+                                          <span className="text-yellow-400">In Progress</span>
+                                        ) : (
+                                          <span className="text-blue-400">Not Started</span>
+                                        )}
                                       </TableCell>
                                       <TableCell>
-                                        {isWinning ? (
+                                        {!hasStarted ? (
+                                          <Badge variant="outline" className="bg-blue-500/10 text-blue-400 border-blue-500/30">
+                                            Not Started
+                                          </Badge>
+                                        ) : isTied ? (
+                                          <Badge variant="outline" className="bg-yellow-500/10 text-yellow-400 border-yellow-500/30">
+                                            Tied
+                                          </Badge>
+                                        ) : isWinning ? (
                                           <Badge className="bg-green-500/20 text-green-400">Winning</Badge>
                                         ) : isLosing ? (
                                           <Badge className="bg-red-500/20 text-red-400">Losing</Badge>
                                         ) : (
-                                          <Badge className="bg-yellow-500/20 text-yellow-400">Tied</Badge>
+                                          <Badge className="bg-gray-500/20 text-gray-400">Unknown</Badge>
                                         )}
                                       </TableCell>
                                       <TableCell>
@@ -694,7 +709,8 @@ export default function FactionPage() {
                   {/* Completed Wars Section */}
                   {(() => {
                     // Get current timestamp for comparison
-                    const currentTime = Math.floor(Date.now() / 1000);
+                    const currentTime = Math.floor(Date.now()```text
+ / 1000);
 
                     // Filter completed wars (those with an end date in the past)
                     const completedWars = faction.recent_wars.filter((war: any) => war.end && war.end <= currentTime);
