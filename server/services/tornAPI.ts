@@ -140,7 +140,7 @@ export class TornAPI {
   private rateLimit = 100; // Default rate limit per minute
   private callsMade = 0;
   private resetTime = Date.now() + 60000;
-  
+
   constructor() {
     // Reset calls counter every minute
     setInterval(() => {
@@ -148,12 +148,12 @@ export class TornAPI {
       this.resetTime = Date.now() + 60000;
     }, 60000);
   }
-  
+
   private async processQueue() {
     if (this.isProcessingQueue || this.requestQueue.length === 0) return;
-    
+
     this.isProcessingQueue = true;
-    
+
     while (this.requestQueue.length > 0) {
       if (this.callsMade >= this.rateLimit) {
         // Wait until rate limit resets
@@ -163,7 +163,7 @@ export class TornAPI {
         }
         this.callsMade = 0;
       }
-      
+
       const request = this.requestQueue.shift();
       if (request) {
         try {
@@ -171,17 +171,17 @@ export class TornAPI {
         } catch (error) {
           console.error("Error processing API request:", error);
         }
-        
+
         this.callsMade++;
-        
+
         // Add a small delay between requests to avoid overwhelming the API
         await new Promise(resolve => setTimeout(resolve, 100));
       }
     }
-    
+
     this.isProcessingQueue = false;
   }
-  
+
   private enqueueRequest<T>(requestFn: () => Promise<T>): Promise<T> {
     return new Promise((resolve, reject) => {
       this.requestQueue.push(async () => {
@@ -192,48 +192,48 @@ export class TornAPI {
           reject(error);
         }
       });
-      
+
       this.processQueue();
     });
   }
-  
+
   // Make this method public so it can be accessed by other services
   public async makeRequest(endpoint: string, apiKey: string): Promise<any> {
     // Use environment API key if none is provided
     const actualApiKey = apiKey || process.env.TORN_API_KEY;
-    
+
     if (!actualApiKey) {
       throw new Error("No API key provided and no environment API key available");
     }
-    
+
     // Torn API requires the format: https://api.torn.com/user?selections=profile&key=YOUR_API_KEY
     // Make sure we're constructing the URL correctly
     let url = `${this.baseUrl}/${endpoint}`;
-    
+
     // Add the API key
     url = url.includes('?') ? `${url}&key=${actualApiKey}` : `${url}?key=${actualApiKey}`;
-    
+
     // For debugging, log the request URL (hiding the API key)
     const logUrl = url.replace(actualApiKey, actualApiKey.substring(0, 4) + '...');
     console.log(`Making Torn API request to: ${logUrl}`);
-    
+
     return this.enqueueRequest(async () => {
       try {
         const response = await fetch(url);
-        
+
         // Handle HTTP errors
         if (!response.ok) {
           throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
         }
-        
+
         const data = await response.json();
-        
+
         // Check for Torn API error responses
         if (data && typeof data === 'object' && 'error' in data) {
           console.error("Torn API Error:", data.error);
           throw new Error(data.error?.error || "API request failed");
         }
-        
+
         return data;
       } catch (error) {
         console.error(`API request failed for ${logUrl}:`, error);
@@ -241,7 +241,7 @@ export class TornAPI {
       }
     });
   }
-  
+
   public async checkApiKey(apiKey: string): Promise<ApiKeyData> {
     if (!apiKey) {
       return {
@@ -254,10 +254,10 @@ export class TornAPI {
         error: "No API key provided"
       };
     }
-    
+
     try {
       const data = await this.makeRequest("user/?selections=basic", apiKey);
-      
+
       return {
         key: apiKey,
         name: data.name || "Unknown",
@@ -278,31 +278,31 @@ export class TornAPI {
       };
     }
   }
-  
+
   // This instance variable holds the last used API key to detect misuse patterns
   private _currentRequestApiKey: string | null = null;
-  
+
   public async getPlayerStats(apiKey: string, playerId?: number): Promise<PlayerStats> {
     try {
       // Safety check: Reset key between requests to prevent key reuse
       this._currentRequestApiKey = apiKey;
-      
+
       // Always make a fresh request without caching
       let endpoint = "user/?selections=basic,profile,battlestats,bars,money,travel";
-      
+
       // If a playerId is provided (for crawler), use it to fetch specific player data
       if (playerId) {
         endpoint = `user/${playerId}?selections=basic,profile,battlestats,bars,money,travel`;
       }
-      
+
       const data = await this.makeRequest(endpoint, apiKey);
-      
+
       // For regular user requests (not crawler), verify this response matches the API key that made the request
       if (!playerId && this._currentRequestApiKey !== apiKey) {
         console.error("API key mismatch detected - potential data leak!");
         throw new Error("Security check failed");
       }
-      
+
       // Format the data into PlayerStats object
       return {
         player_id: data.player_id || 0,
@@ -369,12 +369,12 @@ export class TornAPI {
       throw error;
     }
   }
-  
+
   // Cache for company types
   private companyTypesCache: Record<number, string> = {};
   private companyTypesLastFetched: number = 0;
   private readonly CACHE_EXPIRY_MS = 24 * 60 * 60 * 1000; // 24 hours
-  
+
   /**
    * Gets company type name from the API or cache
    * Note: This method must be used with await as it returns a Promise<string>
@@ -388,7 +388,7 @@ export class TornAPI {
     ) {
       return this.companyTypesCache[typeId] || "Unknown";
     }
-    
+
     // If we have an API key, try to fetch fresh data
     if (apiKey) {
       try {
@@ -399,7 +399,7 @@ export class TornAPI {
         // Fall through to default fallback
       }
     }
-    
+
     // Fallback to a basic mapping if we can't get data from API
     const fallbackTypes: Record<number, string> = {
       1: "Hair Salon",
@@ -442,34 +442,34 @@ export class TornAPI {
       38: "Mining Corporation",
       39: "Detective Agency"
     };
-    
+
     // If cache is empty, initialize with fallback
     if (Object.keys(this.companyTypesCache).length === 0) {
       this.companyTypesCache = { ...fallbackTypes };
     }
-    
+
     return fallbackTypes[typeId] || "Unknown";
   }
-  
+
   /**
    * Fetches company types from the API and updates the cache
    */
   private async fetchCompanyTypes(apiKey: string): Promise<void> {
     try {
       const response = await this.makeRequest("v2/torn?selections=companies", apiKey);
-      
+
       if (response?.companies) {
         // Clear the existing cache
         this.companyTypesCache = {};
-        
+
         // Update the cache with fresh data from API
         Object.entries(response.companies).forEach(([id, data]: [string, any]) => {
           this.companyTypesCache[parseInt(id)] = data.name;
         });
-        
+
         // Update the last fetched timestamp
         this.companyTypesLastFetched = Date.now();
-        
+
         console.log("Updated company types cache with", Object.keys(this.companyTypesCache).length, "types");
       }
     } catch (error) {
@@ -482,7 +482,7 @@ export class TornAPI {
     try {
       // First try to get user's company info through basic profile data
       const userData = await this.makeRequest("user?selections=basic,profile", apiKey);
-      
+
       // If the user doesn't have a job or company, return a "Not in a company" response
       if (!userData.job || !userData.job.company_id) {
         return {
@@ -500,7 +500,7 @@ export class TornAPI {
           last_updated: new Date().toISOString()
         };
       }
-      
+
       // Initialize the company types cache if this is the first API call
       if (Object.keys(this.companyTypesCache).length === 0) {
         try {
@@ -509,41 +509,41 @@ export class TornAPI {
           console.log("Could not fetch company types, using fallback mapping");
         }
       }
-      
+
       // Now fetch detailed company data
       try {
         console.log(`Fetching detailed company data for company ID: ${userData.job.company_id}`);
         const companyResponse = await this.makeRequest("company/?selections=Profile,Employees,detailed", apiKey);
         const companyData = companyResponse.company;
-        
+
         console.log("Company data structure:", Object.keys(companyData).join(", "));
-        
+
         // Log the raw employees data to understand its structure
         if (companyData.employees) {
           const employeeExample = Object.values(companyData.employees)[0];
           console.log("Employee data structure example:", JSON.stringify(employeeExample, null, 2));
         }
-        
+
         // Get the detailed employee data with effectiveness values from company_employees
         const companyEmployeesData = companyResponse.company_employees || {};
-        
+
         // Log the first detailed employee data to see its structure
         if (Object.keys(companyEmployeesData).length > 0) {
           const firstKey = Object.keys(companyEmployeesData)[0];
           console.log("Detailed employee data example:", JSON.stringify(companyEmployeesData[firstKey], null, 2));
           console.log("Effectiveness example:", JSON.stringify(companyEmployeesData[firstKey].effectiveness, null, 2));
         }
-        
+
         // Extract employees data, but merge with effectiveness data from company_employees
         const employeesList = Object.entries(companyData.employees || {}).map(([id, emp]: [string, any]) => {
           const detailedData = companyEmployeesData[id] || {};
           const effectiveness = detailedData.effectiveness?.total || 0;
-          
+
           // Debug log
           if (detailedData.name) {
             console.log(`Employee ${detailedData.name}: effectiveness = ${effectiveness}`);
           }
-          
+
           return {
             ...emp,
             id,
@@ -551,10 +551,10 @@ export class TornAPI {
           };
         });
         const employeeCount = employeesList.length;
-        
+
         // Get the company type name from API or cache
         const companyTypeName = await this.getCompanyTypeName(companyData.company_type, apiKey);
-        
+
         return {
           id: companyData.ID,
           name: companyData.name,
@@ -581,7 +581,7 @@ export class TornAPI {
         };
       } catch (companyError) {
         console.error("Error fetching detailed company data:", companyError);
-        
+
         // Fall back to basic company data from user profile
         return {
           id: userData.job.company_id,
@@ -610,7 +610,7 @@ export class TornAPI {
       }
     } catch (error) {
       console.error("Error fetching company data:", error);
-      
+
       // The user might not be in a company
       if (error instanceof Error && (
           error.message.includes("not in a company") || 
@@ -631,38 +631,38 @@ export class TornAPI {
           last_updated: new Date().toISOString()
         };
       }
-      
+
       throw error;
     }
   }
-  
+
   public async getCompanyDetailedData(apiKey: string): Promise<any> {
     try {
       // First check if the user is in a company
       const userData = await this.makeRequest("user?selections=basic,profile", apiKey);
-      
+
       // If the user has a company
       if (userData.job && userData.job.company_id) {
         const companyId = userData.job.company_id;
         console.log(`Fetching detailed company data for company ID: ${companyId}`);
-        
+
         try {
           // Use the company endpoint with the ID and employees selection
           const response = await this.makeRequest(`company/?selections=Profile,Employees,detailed`, apiKey);
-          
+
           if (!response) {
             throw new Error("Failed to fetch company data");
           }
-          
+
           // The Torn API returns data in a nested structure
           // Extract the main company data, employees data and detailed data
           const companyData = response.company || {};
           const companyEmployeesData = response.company_employees || {};
           const companyDetailedData = response.company_detailed || {};
-          
+
           console.log("Company data structure:", Object.keys(companyData).join(', '));
           console.log("Company detailed data structure:", Object.keys(companyDetailedData).join(', '));
-          
+
           // Process employees data if available
           const employees = [];
           if (companyEmployeesData && Object.keys(companyEmployeesData).length > 0) {
@@ -701,13 +701,13 @@ export class TornAPI {
               });
             }
           }
-          
+
           // Determine the correct company type based on name and type ID
           const companyTypeId = companyData.company_type || userData.job.company_type;
-          
+
           // Get the company type name from the API or cache
           const companyTypeName = await this.getCompanyTypeName(companyTypeId, apiKey);
-          
+
           // Return the full company detail data
           return {
             id: companyData.ID || companyId,
@@ -737,11 +737,11 @@ export class TornAPI {
           };
         } catch (companyError) {
           console.error("Error fetching company data:", companyError);
-          
+
           // Get company type from API using user job type 
           const companyTypeId = userData.job.company_type;
           const companyTypeName = await this.getCompanyTypeName(companyTypeId, apiKey);
-          
+
           // Fallback to basic company info from user profile
           return {
             id: userData.job.company_id,
@@ -787,12 +787,12 @@ export class TornAPI {
       throw error;
     }
   }
-  
+
   public async getFactionData(apiKey: string, includeFullWarHistory = false): Promise<FactionData> {
     try {
       // Get faction info through basic profile data
       const userData = await this.makeRequest("user?selections=basic,profile", apiKey);
-      
+
       // If the user doesn't have a faction, return a "Not in a faction" response
       if (!userData.faction || !userData.faction.faction_id) {
         return {
@@ -821,42 +821,42 @@ export class TornAPI {
           last_updated: new Date().toISOString()
         };
       }
-      
+
       // User is in a faction - get detailed data from v2 API
       const factionId = userData.faction.faction_id;
       console.log(`Fetching detailed faction data for faction ID: ${factionId}`);
-      
+
       // Get detailed faction data using the v2 API with all needed selections
       // If we're requesting full war history, include all ranked wars data
       const selections = includeFullWarHistory 
         ? `basic,applications,chains,rankedwars,stats,territory`
         : `basic,applications,chains,rankedwars,stats,territory`;
-      
+
       const factionData = await this.makeRequest(`v2/faction?selections=${selections}`, apiKey);
-      
+
       // Log territory data details for debugging
       if (factionData.territory) {
         console.log("Territory data structure: ", JSON.stringify(factionData.territory[0], null, 2));
       }
-      
+
       // Parse member status - The v2 API doesn't provide member status in basic data
       // Fetch faction data with detailed member information (must use v2 API)
       const basicFactionData = await this.makeRequest(`v2/faction/${factionId}?selections=basic,members`, apiKey);
-      
+
       // Extract member status
       const memberStatus = { online: 0, idle: 0, offline: 0, hospital: 0 };
       let totalMembers = 0;
-      
+
       if (basicFactionData && basicFactionData.members) {
         totalMembers = Object.keys(basicFactionData.members).length;
-        
+
         // Count member statuses
         Object.values(basicFactionData.members).forEach((member: any) => {
           const status = member.last_action.status;
           if (status === "Online") memberStatus.online++;
           else if (status === "Idle") memberStatus.idle++;
           else if (status === "Offline") memberStatus.offline++;
-          
+
           // Check if in hospital
           if (member.status && member.status.state === "Hospital") {
             memberStatus.hospital++;
@@ -865,59 +865,51 @@ export class TornAPI {
           }
         });
       }
-      
+
       // Extract recent activities based on real data
       const recentActivity = [];
-      
+
       // Removed the "New member joined" activity since it's unreliable without proper date information
       // Applications have valid_until timestamps but without a specific join date attached,
       // the calculation is not meaningful for displaying accurate join times
-      
-      // Check faction wars
+
+      // Check faction wars first and handle war activity
       if (factionData.rankedwars && factionData.rankedwars.length > 0) {
         // Sort wars by start time, newest first
         const recentWars = [...factionData.rankedwars]
           .sort((a, b) => b.start - a.start);
-        
+
         // Get current time for calculations
         const currentTimestamp = Math.floor(Date.now() / 1000);
-        
+
         if (recentWars.length > 0) {
           // Log the wars data for debugging
           console.log("Recent wars data:", JSON.stringify(recentWars.slice(0, 2), null, 2));
-          
-          // Debug timestamp comparison
           console.log("Current timestamp:", currentTimestamp);
-          if (recentWars[0]) {
-            console.log("First war start timestamp:", recentWars[0].start);
-            console.log("War has started?", recentWars[0].start <= currentTimestamp);
-            console.log("Current time:", new Date(currentTimestamp * 1000).toISOString());
-            console.log("War start time:", new Date(recentWars[0].start * 1000).toISOString());
-          }
-          
+
           // Check for wars that have actually started and are ongoing
           const activeWars = recentWars.filter(war => 
             war.start <= currentTimestamp && (!war.end || war.end > currentTimestamp)
           );
-          
+
           // Check for wars that are scheduled but haven't started yet
           const scheduledWars = recentWars.filter(war => 
-            war.start > currentTimestamp && (!war.end || war.end > currentTimestamp)
+            war.start > currentTimestamp
           );
-          
+
           console.log("Active wars count:", activeWars.length);
           console.log("Scheduled wars count:", scheduledWars.length);
-          
-          // First, always show information about the last completed war
-          const lastCompletedWar = recentWars.find(war => war.end);
-          
+
+          // Handle "Days since last war" logic
+          const lastCompletedWar = recentWars.find(war => war.end && war.end > 0);
+
           if (lastCompletedWar && lastCompletedWar.end) {
-            const timeSinceEnd = Math.floor((currentTimestamp - lastCompletedWar.end) / 3600);
-            const timeLabel = timeSinceEnd <= 24 ? `${timeSinceEnd}h ago` : `${Math.floor(timeSinceEnd / 24)}d ago`;
-            
+            const daysSinceEnd = Math.floor((currentTimestamp - lastCompletedWar.end) / 86400);
+            const timeLabel = daysSinceEnd === 0 ? "Today" : daysSinceEnd === 1 ? "1d ago" : `${daysSinceEnd}d ago`;
+
             console.log("Last war ended:", timeLabel);
-            
-            // Show days since last war - only show "War in progress" if war has actually started
+
+            // Only show "War in progress" if there's an active war that has actually started
             recentActivity.push({
               type: 'info',
               description: 'Days since last war',
@@ -925,17 +917,26 @@ export class TornAPI {
               icon: 'clock',
               color: 'blue'
             });
+          } else if (activeWars.length === 0 && scheduledWars.length === 0) {
+            // No completed wars, no active wars, no scheduled wars
+            recentActivity.push({
+              type: 'info',
+              description: 'Days since last war',
+              time: 'No recent wars',
+              icon: 'clock',
+              color: 'blue'
+            });
           }
-          
-          // Show war status based on actual war state
+
+          // Handle "Faction war started" logic
           if (activeWars.length > 0) {
             // We have a war that has actually started
             const mostRecentActiveWar = activeWars[0];
-            const timeDiff = Math.floor((currentTimestamp - mostRecentActiveWar.start) / 3600);
-            const timeLabel = timeDiff <= 24 ? `${timeDiff}h ago` : `${Math.floor(timeDiff / 24)}d ago`;
-            
+            const daysSinceStart = Math.floor((currentTimestamp - mostRecentActiveWar.start) / 86400);
+            const timeLabel = daysSinceStart === 0 ? "Today" : daysSinceStart === 1 ? "1d ago" : `${daysSinceStart}d ago`;
+
             console.log("Active war detected, started:", timeLabel);
-            
+
             recentActivity.push({
               type: 'war',
               description: 'Faction war started',
@@ -945,12 +946,8 @@ export class TornAPI {
             });
           } else if (scheduledWars.length > 0) {
             // We have a scheduled war that hasn't started yet
-            const nextScheduledWar = scheduledWars[0];
-            const timeUntilStart = Math.floor((nextScheduledWar.start - currentTimestamp) / 3600);
-            const timeLabel = timeUntilStart <= 24 ? `Starts in ${timeUntilStart}h` : `Starts in ${Math.floor(timeUntilStart / 24)}d`;
-            
-            console.log("Scheduled war detected, starts:", timeLabel);
-            
+            console.log("Scheduled war detected, not started yet");
+
             recentActivity.push({
               type: 'war',
               description: 'Faction war started',
@@ -970,11 +967,11 @@ export class TornAPI {
           }
         }
       }
-      
+
       // Check territories (count gives us some indication of territory activity)
       if (factionData.territory) {
         const territoryCount = Object.keys(factionData.territory).length;
-        
+
         // Use a placeholder time since we don't know when territories were actually captured
         recentActivity.push({
           type: 'achievement',
@@ -984,7 +981,7 @@ export class TornAPI {
           color: 'yellow'
         });
       }
-      
+
       // If there are no real activities, add a placeholder
       if (recentActivity.length === 0) {
         recentActivity.push({
@@ -995,12 +992,12 @@ export class TornAPI {
           color: 'gray'
         });
       }
-      
+
       // Determine war status based on ranked wars
       let warStatus = "PEACE";
       // Calculate current timestamp for war status checks
       const currentTime = Math.floor(Date.now() / 1000);
-      
+
       if (factionData.rankedwars && factionData.rankedwars.some(war => {
         // A war is active if:
         // 1. Its status is 'active' AND
@@ -1009,7 +1006,7 @@ export class TornAPI {
       })) {
         warStatus = "WAR";
       }
-      
+
       // Extract faction respect
       let factionRespect = 0;
       if (factionData.stats && factionData.stats.respect) {
@@ -1017,24 +1014,24 @@ export class TornAPI {
       } else if (basicFactionData && basicFactionData.respect) {
         factionRespect = parseInt(basicFactionData.respect) || 0;
       }
-      
+
       // Fallback to basic v2 API format if respect is still 0
       if (factionRespect === 0 && factionData.basic && factionData.basic.respect) {
         factionRespect = parseInt(factionData.basic.respect) || 0;
       }
-      
+
       console.log(`Faction data for ${factionData.name || userData.faction.faction_name}:`, {
         respect: factionRespect,
         territories: factionData.territory ? Object.keys(factionData.territory).length : 0,
         members: totalMembers
       });
-      
+
       // Get best chain from the basic data
       let bestChain = 0;
       if (factionData.basic && factionData.basic.best_chain) {
         bestChain = factionData.basic.best_chain;
       }
-      
+
       console.log("Best chain value:", bestChain);
 
       // Get faction age in days from the basic data
@@ -1042,19 +1039,19 @@ export class TornAPI {
       if (factionData.basic && factionData.basic.days_old) {
         daysOld = factionData.basic.days_old;
       }
-      
+
       // Extract enlisted status and rank information
       let isEnlisted = false;
       let rankLevel = 0;
       let rankName = "";
       let rankDivision = 0;
       let rankPosition = 0;
-      
+
       if (factionData.basic) {
         if (factionData.basic.is_enlisted !== undefined) {
           isEnlisted = factionData.basic.is_enlisted;
         }
-        
+
         if (factionData.basic.rank) {
           rankLevel = factionData.basic.rank.level || 0;
           rankName = factionData.basic.rank.name || "";
@@ -1062,10 +1059,10 @@ export class TornAPI {
           rankPosition = factionData.basic.rank.position || 0;
         }
       }
-      
+
       // Extract real member data from the API response
       const memberList = {};
-      
+
       // Process the actual member data from basicFactionData
       if (basicFactionData && basicFactionData.members) {
         Object.entries(basicFactionData.members).forEach(([id, memberData]: [string, any]) => {
@@ -1087,26 +1084,26 @@ export class TornAPI {
 
       // Process recent wars data
       const recentWars = factionData.rankedwars || [];
-      
+
       // Make sure we log the war data for debugging
       console.log("Recent wars data:", JSON.stringify(recentWars.slice(0, 2)));
       console.log(`Total wars fetched from API: ${recentWars.length}`);
-      
+
       // Sort wars by start time, newest first
       const sortedWars = [...recentWars].sort((a, b) => b.start - a.start);
-      
+
       // Calculate days since last war
       const lastCompletedWar = sortedWars.find(war => war.end);
       let lastWarEnded = null;
-      
+
       if (lastCompletedWar && lastCompletedWar.end) {
         const daysSinceEnd = Math.floor((currentTime - lastCompletedWar.end) / 86400);
         lastWarEnded = daysSinceEnd <= 1 ? "1d ago" : `${daysSinceEnd}d ago`;
       }
-      
+
       // Get active wars
       const activeWars = sortedWars.filter(war => !war.end || war.end > currentTime);
-      
+
       // Build the response object with real data
       return {
         id: factionData.ID || userData.faction.faction_id,
@@ -1144,7 +1141,7 @@ export class TornAPI {
       };
     } catch (error) {
       console.error("Error fetching faction data:", error);
-      
+
       // The user might not be in a faction
       if (error instanceof Error && (
           error.message.includes("not in a faction") || 
@@ -1164,11 +1161,11 @@ export class TornAPI {
           last_updated: new Date().toISOString()
         };
       }
-      
+
       throw error;
     }
   }
-  
+
   public async getFactionDetailedData(apiKey: string): Promise<any> {
     // Mock data for demonstration
     return {
@@ -1233,7 +1230,7 @@ export class TornAPI {
       }
     };
   }
-  
+
   /**
    * Get bazaar items from specific player's bazaar
    * @param apiKey - User's Torn API key
@@ -1243,11 +1240,11 @@ export class TornAPI {
   public async getPlayerBazaar(apiKey: string, playerId: number): Promise<any> {
     try {
       const data = await this.makeRequest(`user/${playerId}?selections=bazaar`, apiKey);
-      
+
       if (!data || !data.bazaar) {
         return { playerId, items: [] };
       }
-      
+
       // Process and format the player's bazaar items
       const items = Object.entries(data.bazaar || {}).map(([id, item]: [string, any]) => ({
         id: parseInt(id),
@@ -1266,7 +1263,7 @@ export class TornAPI {
           name: data.name || `Player ${playerId}`
         }
       }));
-      
+
       return { 
         playerId, 
         items,
@@ -1277,7 +1274,7 @@ export class TornAPI {
       return { playerId, items: [] };
     }
   }
-  
+
   /**
    * Get all Torn items data
    * @param apiKey - User's Torn API key
@@ -1287,12 +1284,12 @@ export class TornAPI {
     try {
       console.log("Making Torn API request for items data");
       const data = await this.makeRequest("v2/torn?selections=items", apiKey);
-      
+
       if (!data || !data.items) {
         console.error("No items data received from Torn API");
         throw new Error("No items data returned from API");
       }
-      
+
       console.log(`Successfully received ${Object.keys(data.items).length} items from Torn API`);
       return data.items;
     } catch (error) {
@@ -1312,7 +1309,7 @@ export class TornAPI {
     try {
       // Get known player IDs using multiple sources
       const userData = await this.makeRequest("user?selections=basic", apiKey);
-      
+
       // These are known active traders with bazaars as of May 2025
       let playerIds: number[] = [
         2214735, // Shyran Market 
@@ -1331,22 +1328,22 @@ export class TornAPI {
         1968393, // Market [MALL]
         1948188  // BazaarTrade
       ];
-      
+
       // Also check the user's own bazaar
       if (userData && userData.player_id) {
         playerIds.push(userData.player_id);
       }
-      
+
       // If user is in a faction, add faction members who might have bazaars
       if (userData.faction && userData.faction.faction_id) {
         try {
           const factionData = await this.makeRequest(`faction/${userData.faction.faction_id}?selections=basic`, apiKey);
           if (factionData && factionData.members) {
             const factionMembers = Object.keys(factionData.members).map(id => parseInt(id));
-            
+
             // Add faction members to the players list
             playerIds = [...playerIds, ...factionMembers];
-            
+
             // Remove duplicates
             playerIds = Array.from(new Set(playerIds));
           }
@@ -1354,37 +1351,37 @@ export class TornAPI {
           console.warn("Could not fetch faction members for bazaar:", err);
         }
       }
-      
+
       console.log(`Fetching bazaar items from ${playerIds.length} players`);
-      
+
       // Only fetch from a reasonable number of players to avoid rate limits
       const playersToCheck = playerIds.slice(0, 15); // Limit to 15 players to reduce API calls
-      
+
       // Fetch bazaar items from each player
       const playerBazaars = await Promise.all(
         playersToCheck.map(playerId => this.getPlayerBazaar(apiKey, playerId))
       );
-      
+
       // Combine all items
       let allItems: any[] = [];
-      
+
       playerBazaars.forEach(bazaar => {
         if (bazaar && bazaar.items && bazaar.items.length > 0) {
           allItems = [...allItems, ...bazaar.items];
         }
       });
-      
+
       // Filter by category if specified
       if (category !== 'all') {
         allItems = allItems.filter(item => item.category.toLowerCase() === category.toLowerCase());
       }
-      
+
       // Get unique categories
       const categories = Array.from(new Set(allItems.map(item => item.category)));
-      
+
       // Get unique types for filtering
       const types = Array.from(new Set(allItems.map(item => item.type).filter(t => t)));
-      
+
       // Create subcategories mapping
       const subCategories: Record<string, string[]> = {};
       categories.forEach(cat => {
@@ -1394,10 +1391,10 @@ export class TornAPI {
           .filter(Boolean);
         subCategories[cat] = Array.from(new Set(typesInCategory));
       });
-      
+
       // Sort items by price (lowest first)
       allItems.sort((a, b) => a.price - b.price);
-      
+
       // Add metadata for frontend display
       const meta = {
         total: allItems.length,
@@ -1408,7 +1405,7 @@ export class TornAPI {
         types,
         sub_categories: subCategories
       };
-      
+
       return {
         items: allItems,
         categories,
@@ -1417,7 +1414,7 @@ export class TornAPI {
       };
     } catch (error) {
       console.error("Error fetching bazaar data:", error);
-      
+
       // Return empty data if there's an error
       return {
         items: [],
@@ -1435,7 +1432,7 @@ export class TornAPI {
       };
     }
   }
-  
+
   public async checkApiStatus(apiKey: string): Promise<ApiStatus> {
     return {
       status: "online",
@@ -1446,7 +1443,7 @@ export class TornAPI {
       lastErrorTime: null
     };
   }
-  
+
   public async syncUserData(apiKey: string, userId: number): Promise<void> {
     // This would perform a full sync of all user data
     console.log(`Synced data for user ${userId}`);
