@@ -35,7 +35,7 @@ export default function FactionPage() {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [warPage, setWarPage] = useState(1);
   const WARS_PER_PAGE = 10;
-  
+
   // Fetch faction data from the API
   const { 
     data: faction, 
@@ -58,17 +58,17 @@ export default function FactionPage() {
   // Function to format age in years, months, and days
   const formatFactionAge = (totalDays: number): string => {
     if (totalDays <= 0) return "Age: Unknown";
-    
+
     const years = Math.floor(totalDays / 365);
     const remainingDays = totalDays % 365;
     const months = Math.floor(remainingDays / 30);
     const days = remainingDays % 30;
-    
+
     let result = "Age: ";
     if (years > 0) result += `${years} ${years === 1 ? 'year' : 'years'}, `;
     if (months > 0) result += `${months} ${months === 1 ? 'month' : 'months'}, `;
     if (days > 0 || (years === 0 && months === 0)) result += `${days} ${days === 1 ? 'day' : 'days'}`;
-    
+
     return result;
   };
 
@@ -86,7 +86,7 @@ export default function FactionPage() {
         return <Badge variant="outline">Unknown</Badge>;
     }
   };
-  
+
   // Show loading state
   if (isLoading) {
     return (
@@ -102,7 +102,7 @@ export default function FactionPage() {
       </MainLayout>
     );
   }
-  
+
   // Show error state if loading failed
   if (error || !faction) {
     return (
@@ -126,28 +126,28 @@ export default function FactionPage() {
       </MainLayout>
     );
   }
-  
+
   // Extract member status from faction data
   const memberStatus = faction.member_status || {};
   const onlineCount = memberStatus.online || 0;
   const idleCount = memberStatus.idle || 0;
   const offlineCount = memberStatus.offline || 0;
   const hospitalCount = memberStatus.hospital || 0;
-  
+
   // Calculate totals
   const totalMembers = (onlineCount + idleCount + offlineCount + hospitalCount) || 1;
   const onlinePercentage = (onlineCount / totalMembers) * 100;
   const idlePercentage = (idleCount / totalMembers) * 100;
   const offlinePercentage = (offlineCount / totalMembers) * 100;
   const hospitalPercentage = (hospitalCount / totalMembers) * 100;
-  
+
   return (
     <MainLayout title="Faction Tracking">
       <Helmet>
         <title>Faction Tracking | Byte-Core Vault</title>
         <meta name="description" content="Track your Torn RPG faction members and performance with Byte-Core Vault." />
       </Helmet>
-      
+
       {/* Faction Overview Card */}
       <div className="mb-6">
         <Card className="border-gray-700 bg-game-dark shadow-game">
@@ -175,7 +175,7 @@ export default function FactionPage() {
                   </div>
                 </div>
               </div>
-              
+
               <Button 
                 variant="outline" 
                 size="sm" 
@@ -191,7 +191,7 @@ export default function FactionPage() {
               </Button>
             </div>
           </CardHeader>
-          
+
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
               <div className="bg-game-panel rounded p-3 border border-gray-700">
@@ -204,7 +204,7 @@ export default function FactionPage() {
                   className="h-1.5 mt-1 bg-gray-700" 
                 />
               </div>
-              
+
               <div className="bg-game-panel rounded p-3 border border-gray-700">
                 <div className="text-xs text-gray-400 mb-1">RESPECT</div>
                 <div className="text-xl font-rajdhani font-bold">
@@ -214,7 +214,7 @@ export default function FactionPage() {
                   Best Chain: {(faction.best_chain || 0).toLocaleString()} hits
                 </div>
               </div>
-              
+
               <div className="bg-game-panel rounded p-3 border border-gray-700">
                 <div className="text-xs text-gray-400 mb-1">TERRITORIES</div>
                 <div className="text-xl font-rajdhani font-bold">
@@ -222,7 +222,7 @@ export default function FactionPage() {
                 </div>
                 {/* Territory value removed per user request */}
               </div>
-              
+
               <div className="bg-game-panel rounded p-3 border border-gray-700">
                 <div className="text-xs text-gray-400 mb-1">WAR STATUS</div>
                 <div className="text-xl font-rajdhani font-bold text-yellow-400 flex items-center">
@@ -234,7 +234,7 @@ export default function FactionPage() {
                 </div>
               </div>
             </div>
-            
+
             {/* Member Status */}
             <div className="mb-3">
               <div className="text-xs text-gray-400 uppercase font-semibold mb-2">Member Status</div>
@@ -256,13 +256,13 @@ export default function FactionPage() {
           </CardContent>
         </Card>
       </div>
-      
+
       {/* Faction Details Card with Tabs */}
       <Card className="border-gray-700 bg-game-dark shadow-game">
         <CardHeader>
           <h3 className="font-bold text-lg">Faction Details</h3>
         </CardHeader>
-        
+
         <CardContent>
           <Tabs defaultValue="members" value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="bg-game-panel mb-4">
@@ -270,7 +270,7 @@ export default function FactionPage() {
               <TabsTrigger value="territories">Territories</TabsTrigger>
               <TabsTrigger value="wars">Wars</TabsTrigger>
             </TabsList>
-            
+
             {/* Members Tab */}
             <TabsContent value="members">
               <div className="flex flex-col md:flex-row justify-between space-y-2 md:space-y-0 md:space-x-2 mb-4">
@@ -282,7 +282,7 @@ export default function FactionPage() {
                     className="w-full bg-game-panel border-gray-700"
                   />
                 </div>
-                
+
                 <div className="flex space-x-2">
                   {/* Custom-styled Status filter */}
                   <div className="w-[150px] relative">
@@ -305,7 +305,7 @@ export default function FactionPage() {
                         <path d="m6 9 6 6 6-6"/>
                       </svg>
                     </div>
-                    
+
                     <div id="status-dropdown" className="absolute z-10 w-full mt-1 bg-gray-900 border border-gray-700 rounded-md shadow-lg hidden">
                       <div 
                         className="p-2 hover:bg-gray-800 cursor-pointer"
@@ -354,7 +354,7 @@ export default function FactionPage() {
                       </div>
                     </div>
                   </div>
-                  
+
                   {/* Custom-styled Position filter with dynamic options */}
                   <div className="w-[150px] relative">
                     <div 
@@ -363,13 +363,13 @@ export default function FactionPage() {
                         const dropdown = document.getElementById("position-dropdown");
                         if (dropdown) {
                           dropdown.classList.toggle("hidden");
-                          
+
                           // Generate position options dynamically when opening dropdown
                           if (!dropdown.classList.contains("hidden") && faction.members) {
                             try {
                               // Clear existing options
                               dropdown.innerHTML = '<div class="p-2 hover:bg-gray-800 cursor-pointer position-option" data-value="all">All Positions</div>';
-                              
+
                               // Extract unique positions
                               const positions = new Set<string>();
                               Object.values(faction.members).forEach((member: any) => {
@@ -377,11 +377,11 @@ export default function FactionPage() {
                                   positions.add(member.position);
                                 }
                               });
-                              
+
                               // Add position options
                               Array.from(positions).sort().forEach(position => {
                                 const div = document.createElement("div");
-                                div.className = "p-2 hover:bg-gray-800 cursor-pointer position-option";
+                                div.className = "p-2 hover:bg-gray-800 cursor-pointer position-option text-gray-300";
                                 div.setAttribute("data-value", position);
                                 div.textContent = position;
                                 div.onclick = () => {
@@ -390,7 +390,7 @@ export default function FactionPage() {
                                 };
                                 dropdown.appendChild(div);
                               });
-                              
+
                               // Add click handler to "All Positions" option
                               const allOption = dropdown.querySelector('[data-value="all"]');
                               if (allOption) {
@@ -411,7 +411,7 @@ export default function FactionPage() {
                         <path d="m6 9 6 6 6-6"/>
                       </svg>
                     </div>
-                    
+
                     <div id="position-dropdown" className="absolute z-10 w-full mt-1 bg-gray-900 border border-gray-700 rounded-md shadow-lg hidden max-h-60 overflow-y-auto">
                       <div 
                         className="p-2 hover:bg-gray-800 cursor-pointer position-option"
@@ -424,7 +424,7 @@ export default function FactionPage() {
                   </div>
                 </div>
               </div>
-              
+
               {faction.members && Object.keys(faction.members).length > 0 ? (
                 <Table className="border-gray-700">
                   <TableHeader className="bg-game-panel">
@@ -444,12 +444,12 @@ export default function FactionPage() {
                         // First filter the members
                         const filteredMembers = Object.values(faction.members || {}).filter((member: any) => {
                           if (!member) return false;
-                          
+
                           try {
                             const memberStatus = member.last_action?.status || "Offline";
                             const inHospital = member.status?.state === "Hospital";
                             const displayStatus = inHospital ? "Hospital" : memberStatus;
-                            
+
                             if (statusFilter !== 'all' && displayStatus !== statusFilter) return false;
                             if (positionFilter !== 'all' && member.position !== positionFilter) return false;
                             if (searchQuery && !member.name?.toLowerCase().includes(searchQuery.toLowerCase())) return false;
@@ -459,15 +459,15 @@ export default function FactionPage() {
                             return false;
                           }
                         });
-                        
+
                         // Then map to table rows
                         return filteredMembers.map((member: any) => {
                           if (!member) return null;
-                          
+
                           const memberStatus = member.last_action?.status || "Offline";
                           const inHospital = member.status?.state === "Hospital";
                           const displayStatus = inHospital ? "Hospital" : memberStatus;
-                          
+
                           return (
                             <TableRow key={member.id || Math.random()} className="border-gray-700">
                               <TableCell className="font-medium">{member.name || "Unknown"}</TableCell>
@@ -514,7 +514,7 @@ export default function FactionPage() {
                 </div>
               )}
             </TabsContent>
-            
+
             {/* Territories Tab */}
             <TabsContent value="territories">
               {faction && (
@@ -527,7 +527,7 @@ export default function FactionPage() {
                       No Active Territory Wars
                     </Badge>
                   </div>
-                  
+
                   {faction.territory && Array.isArray(faction.territory) && faction.territory.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                       {faction.territory.map((territory, i) => (
@@ -542,7 +542,7 @@ export default function FactionPage() {
                                 {territory.racket ? 'Racket Active' : 'No Racket'}
                               </Badge>
                             </div>
-                            
+
                             {territory.racket && (
                               <div className="mt-2 p-2 bg-gray-800/50 rounded-md">
                                 <p className="text-sm font-semibold text-foreground">{territory.racket.name}</p>
@@ -554,7 +554,7 @@ export default function FactionPage() {
                                 </p>
                               </div>
                             )}
-                            
+
                             <div className="flex justify-between items-center mt-4">
                               <span className="text-sm">
                                 <Badge variant="outline" className="bg-gray-800/50 text-foreground">
@@ -583,7 +583,7 @@ export default function FactionPage() {
                 </div>
               )}
             </TabsContent>
-            
+
             {/* Wars Tab */}
             <TabsContent value="wars">
               {faction.recent_wars && faction.recent_wars.length > 0 ? (
@@ -592,10 +592,10 @@ export default function FactionPage() {
                   {(() => {
                     // Get current timestamp for comparison
                     const currentTime = Math.floor(Date.now() / 1000);
-                    
+
                     // Identify active wars (those without an end date or end date is in the future)
                     const activeWars = faction.recent_wars.filter((war: any) => !war.end || (war.end && war.end > currentTime));
-                    
+
                     if (activeWars.length > 0) {
                       return (
                         <div className="mb-6">
@@ -621,7 +621,7 @@ export default function FactionPage() {
                                   const theirScore = opposingFaction ? opposingFaction.score : 0;
                                   const isWinning = ourScore > theirScore;
                                   const isLosing = ourScore < theirScore;
-                                  
+
                                   return (
                                     <TableRow key={`active-${index}`} className="hover:bg-blue-900/20">
                                       <TableCell className="font-medium">#{war.id}</TableCell>
@@ -670,22 +670,22 @@ export default function FactionPage() {
                     }
                     return null;
                   })()}
-                  
+
                   {/* Completed Wars Section */}
                   {(() => {
                     // Get current timestamp for comparison
                     const currentTime = Math.floor(Date.now() / 1000);
-                    
+
                     // Filter completed wars (those with an end date in the past)
                     const completedWars = faction.recent_wars.filter((war: any) => war.end && war.end <= currentTime);
-                    
+
                     // Calculate total pages
                     const totalPages = Math.ceil(completedWars.length / WARS_PER_PAGE);
-                    
+
                     // Get wars for current page
                     const startIndex = (warPage - 1) * WARS_PER_PAGE;
                     const paginatedWars = completedWars.slice(startIndex, startIndex + WARS_PER_PAGE);
-                    
+
                     return (
                       <div>
                         <h3 className="text-lg font-medium mb-3 text-foreground">
@@ -711,7 +711,7 @@ export default function FactionPage() {
                                   const isWinner = war.winner === faction.id;
                                   const ourFaction = war.factions.find((f: any) => f.id === faction.id);
                                   const opposingFaction = war.factions.find((f: any) => f.id !== faction.id);
-                                  
+
                                   return (
                                     <TableRow key={`completed-${index}`} className="hover:bg-game-panel/40">
                                       <TableCell className="font-medium">#{war.id}</TableCell>
@@ -760,7 +760,7 @@ export default function FactionPage() {
                             </TableBody>
                           </Table>
                         </div>
-                        
+
                         {/* Pagination Controls */}
                         {totalPages > 1 && (
                           <div className="flex justify-between items-center p-4 bg-gray-800/50 mt-4 rounded-md">

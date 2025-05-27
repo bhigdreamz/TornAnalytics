@@ -16,13 +16,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+
 import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
 import { 
@@ -97,6 +91,7 @@ export default function FactionSearchPage() {
   const [excludeTraveling, setExcludeTraveling] = useState(false);
   const [page, setPage] = useState(1);
   const [sortBy, setSortBy] = useState("level-desc");
+  const [donatorStatus, setDonatorStatus] = useState("any");
   const [hasSearched, setHasSearched] = useState(false);
   
   const { data, isLoading, isError, refetch, isFetching } = useQuery<FactionSearchResponse>({
@@ -125,6 +120,7 @@ export default function FactionSearchPage() {
     setExcludeInFaction(true);
     setExcludeTraveling(false);
     setSortBy("level-desc");
+    setDonatorStatus("any");
     setPage(1);
     setHasSearched(false);
   };
@@ -382,16 +378,31 @@ export default function FactionSearchPage() {
                 <div className="flex justify-between items-center mb-1">
                   <label className="text-sm text-gray-400">Donator Status:</label>
                 </div>
-                <Select defaultValue="any">
-                  <SelectTrigger className="bg-game-panel border-gray-700">
-                    <SelectValue placeholder="Any" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="any">Any</SelectItem>
-                    <SelectItem value="yes">Yes</SelectItem>
-                    <SelectItem value="no">No</SelectItem>
-                  </SelectContent>
-                </Select>
+                <div className="relative">
+                  <div 
+                    className="w-full p-2 bg-game-panel border border-gray-700 rounded-md flex items-center justify-between text-sm cursor-pointer hover:bg-gray-800"
+                    onClick={() => {
+                      const dropdown = document.getElementById("donator-status-dropdown");
+                      if (dropdown) {
+                        dropdown.classList.toggle("hidden");
+                      }
+                    }}
+                  >
+                    <span>
+                      {donatorStatus === "any" ? "Any" : 
+                       donatorStatus === "yes" ? "Yes" : "No"}
+                    </span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="m6 9 6 6 6-6"/>
+                    </svg>
+                  </div>
+                  
+                  <div id="donator-status-dropdown" className="absolute z-10 w-full mt-1 bg-gray-900 border border-gray-700 rounded-md shadow-lg hidden">
+                    <div className="p-2 hover:bg-gray-800 cursor-pointer text-gray-300" onClick={() => { setDonatorStatus("any"); document.getElementById("donator-status-dropdown")?.classList.add("hidden"); }}>Any</div>
+                    <div className="p-2 hover:bg-gray-800 cursor-pointer text-gray-300" onClick={() => { setDonatorStatus("yes"); document.getElementById("donator-status-dropdown")?.classList.add("hidden"); }}>Yes</div>
+                    <div className="p-2 hover:bg-gray-800 cursor-pointer text-gray-300" onClick={() => { setDonatorStatus("no"); document.getElementById("donator-status-dropdown")?.classList.add("hidden"); }}>No</div>
+                  </div>
+                </div>
               </div>
             </div>
             

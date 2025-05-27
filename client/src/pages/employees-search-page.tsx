@@ -15,13 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+
 import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
 import { 
@@ -286,23 +280,46 @@ export default function EmployeesSearchPage() {
               <div className="flex justify-between items-center mb-1">
                 <label className="text-sm text-gray-400">Job Type:</label>
               </div>
-              <Select value={companyType} onValueChange={setCompanyType}>
-                <SelectTrigger className="bg-game-panel border-gray-700">
-                  <SelectValue placeholder="Select a Job Type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Types</SelectItem>
-                  <SelectItem value="law">Law Firm</SelectItem>
-                  <SelectItem value="medical">Medical</SelectItem>
-                  <SelectItem value="casino">Casino</SelectItem>
-                  <SelectItem value="education">Education</SelectItem>
-                  <SelectItem value="nightclub">Nightclub</SelectItem>
-                  <SelectItem value="oil">Oil Rig</SelectItem>
-                  <SelectItem value="logistics">Logistics</SelectItem>
-                  <SelectItem value="fitness">Fitness Center</SelectItem>
-                  <SelectItem value="mechanic">Mechanic Shop</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="relative">
+                <div 
+                  className="w-full p-2 bg-game-panel border border-gray-700 rounded-md flex items-center justify-between text-sm cursor-pointer hover:bg-gray-800"
+                  onClick={() => {
+                    const dropdown = document.getElementById("job-type-dropdown");
+                    if (dropdown) {
+                      dropdown.classList.toggle("hidden");
+                    }
+                  }}
+                >
+                  <span>
+                    {companyType === "all" ? "All Types" : 
+                     companyType === "law" ? "Law Firm" :
+                     companyType === "medical" ? "Medical" :
+                     companyType === "casino" ? "Casino" :
+                     companyType === "education" ? "Education" :
+                     companyType === "nightclub" ? "Nightclub" :
+                     companyType === "oil" ? "Oil Rig" :
+                     companyType === "logistics" ? "Logistics" :
+                     companyType === "fitness" ? "Fitness Center" :
+                     companyType === "mechanic" ? "Mechanic Shop" : "All Types"}
+                  </span>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="m6 9 6 6 6-6"/>
+                  </svg>
+                </div>
+                
+                <div id="job-type-dropdown" className="absolute z-10 w-full mt-1 bg-gray-900 border border-gray-700 rounded-md shadow-lg hidden">
+                  <div className="p-2 hover:bg-gray-800 cursor-pointer" onClick={() => { setCompanyType("all"); document.getElementById("job-type-dropdown")?.classList.add("hidden"); }}>All Types</div>
+                  <div className="p-2 hover:bg-gray-800 cursor-pointer" onClick={() => { setCompanyType("law"); document.getElementById("job-type-dropdown")?.classList.add("hidden"); }}>Law Firm</div>
+                  <div className="p-2 hover:bg-gray-800 cursor-pointer" onClick={() => { setCompanyType("medical"); document.getElementById("job-type-dropdown")?.classList.add("hidden"); }}>Medical</div>
+                  <div className="p-2 hover:bg-gray-800 cursor-pointer" onClick={() => { setCompanyType("casino"); document.getElementById("job-type-dropdown")?.classList.add("hidden"); }}>Casino</div>
+                  <div className="p-2 hover:bg-gray-800 cursor-pointer" onClick={() => { setCompanyType("education"); document.getElementById("job-type-dropdown")?.classList.add("hidden"); }}>Education</div>
+                  <div className="p-2 hover:bg-gray-800 cursor-pointer" onClick={() => { setCompanyType("nightclub"); document.getElementById("job-type-dropdown")?.classList.add("hidden"); }}>Nightclub</div>
+                  <div className="p-2 hover:bg-gray-800 cursor-pointer" onClick={() => { setCompanyType("oil"); document.getElementById("job-type-dropdown")?.classList.add("hidden"); }}>Oil Rig</div>
+                  <div className="p-2 hover:bg-gray-800 cursor-pointer" onClick={() => { setCompanyType("logistics"); document.getElementById("job-type-dropdown")?.classList.add("hidden"); }}>Logistics</div>
+                  <div className="p-2 hover:bg-gray-800 cursor-pointer" onClick={() => { setCompanyType("fitness"); document.getElementById("job-type-dropdown")?.classList.add("hidden"); }}>Fitness Center</div>
+                  <div className="p-2 hover:bg-gray-800 cursor-pointer" onClick={() => { setCompanyType("mechanic"); document.getElementById("job-type-dropdown")?.classList.add("hidden"); }}>Mechanic Shop</div>
+                </div>
+              </div>
             </div>
 
             <div className="flex items-center space-x-2">
