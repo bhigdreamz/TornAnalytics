@@ -55,6 +55,10 @@ import SupplyPackCategoryPage from "@/pages/supply-pack-category-page";
 import BazaarListingsPage from "@/pages/bazaar-listings-page";
 import { ProtectedRoute } from "./lib/protected-route";
 
+// Placeholder components for new search pages
+const CompanySearchPage = () => <div>Company Search Page</div>;
+const FactionsSearchPage = () => <div>Factions Search Page</div>;
+
 function Router() {
   return (
     <Switch>
@@ -68,6 +72,8 @@ function Router() {
       <ProtectedRoute path="/items" component={ItemDatabasePage} />
       <ProtectedRoute path="/employees-search" component={EmployeesSearchPage} />
       <ProtectedRoute path="/faction-search" component={FactionSearchPage} />
+      <ProtectedRoute path="/company-search" component={CompanySearchPage} />
+      <ProtectedRoute path="/factions-search" component={FactionsSearchPage} />
       <ProtectedRoute path="/crawler-status" component={CrawlerStatusPage} />
       <ProtectedRoute path="/item-database" component={ItemDatabasePage} />
       <ProtectedRoute path="/melee-test" component={MeleeTestPage} />

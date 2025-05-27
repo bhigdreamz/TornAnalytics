@@ -77,6 +77,32 @@ interface ItemSearchParams {
   searchQuery: string;
 }
 
+// Company search interface
+interface CompanySearchParams {
+  page: number;
+  companyType: string;
+  minRating: number;
+  maxRating: number;
+  minEmployees: number;
+  maxEmployees: number;
+  minDailyIncome: number;
+  sortBy: string;
+  searchQuery: string;
+}
+
+// Factions search interface
+interface FactionsSearchParams {
+  page: number;
+  minRespect: number;
+  maxRespect: number;
+  minMembers: number;
+  maxMembers: number;
+  minBestChain: number;
+  minAge: number;
+  sortBy: string;
+  searchQuery: string;
+}
+
 export interface IStorage {
   // User management
   getUser(id: number): Promise<User | undefined>;
@@ -108,6 +134,12 @@ export interface IStorage {
   // Item management
   getItems(params: ItemSearchParams): Promise<any>;
 
+  // Company search
+  searchCompanies(params: CompanySearchParams): Promise<any>;
+  
+  // Faction search
+  searchFactions(params: FactionsSearchParams): Promise<any>;
+
   // System stats
   getSystemStats(): Promise<SystemStats>;
 
@@ -120,6 +152,8 @@ export class MemStorage implements IStorage {
   private userSettings: Map<number, UserSettings>;
   private playerData: Map<number, any>;
   private itemData: Map<number, any>;
+  private companiesData = new Map<number, any>();
+  private factionsData = new Map<number, any>();
   private crawlerConfig: CrawlerConfig | null = null;
   private lastCrawlPosition: number | null = null;
   private lastCrawlTime: number | null = null;
@@ -486,17 +520,18 @@ export class MemStorage implements IStorage {
       }
     });
 
-    // Get company types for filters
-    const companyTypes = ["Logistics", "Medical", "Casino", "Adult", "Law", "Computer", "Firework", "Flower"];
-
     return {
       candidates: candidates.slice(startIndex, startIndex + pageSize),
       meta: {
         total: candidates.length,
         page,
         limit: pageSize,
-        total_pages: Math.ceil(candidates.length / pageSize),
-        company_types: companyTypes
+        total_pages: Math.ceil(candidates.length / pageSize)
+      },
+      crawl_status: {
+        total_indexed: candidates.length,
+        last_indexed: "2024-01-27 15:30:00",
+        crawl_complete_percentage: 85
       }
     };
   }
@@ -586,8 +621,217 @@ export class MemStorage implements IStorage {
         page,
         limit: pageSize,
         total_pages: Math.ceil(candidates.length / pageSize)
+      },
+      crawl_status: {
+        total_indexed: candidates.length,
+        last_indexed: "2024-01-27 15:30:00",
+        crawl_complete_percentage: 85
       }
     };
+  }
+
+  async searchCompanies(params: CompanySearchParams): Promise<any> {
+    const { 
+      page, 
+      companyType,
+      minRating,
+      maxRating,
+      minEmployees,
+      maxEmployees,
+      minDailyIncome,
+      sortBy, 
+      searchQuery 
+    } = params;
+
+    const pageSize = 20;
+    const startIndex = (page - 1) * pageSize;
+
+    // Generate mock company data if empty
+    if (this.companiesData.size === 0) {
+      this.generateMockCompanies();
+    }
+
+    let companies = Array.from(this.companiesData.values()).filter(company => {
+      // Company type filter
+      if (companyType !== "all" && company.type !== companyType) return false;
+
+      // Rating filter
+      if (company.rating < minRating || company.rating > maxRating) return false;
+
+      // Employee count filter
+      if (company.employees.current < minEmployees || company.employees.current > maxEmployees) return false;
+
+      // Daily income filter
+      if (company.daily_income < minDailyIncome) return false;
+
+      // Search query filter
+      if (searchQuery && !company.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+
+      return true;
+    });
+
+    // Sort companies
+    companies.sort((a, b) => {
+      switch (sortBy) {
+        case "rating-asc": return a.rating - b.rating;
+        case "rating-desc": return b.rating - a.rating;
+        case "employees-asc": return a.employees.current - b.employees.current;
+        case "employees-desc": return b.employees.current - a.employees.current;
+        case "income-asc": return a.daily_income - b.daily_income;
+        case "income-desc": return b.daily_income - a.daily_income;
+        default: return b.rating - a.rating;
+      }
+    });
+
+    return {
+      companies: companies.slice(startIndex, startIndex + pageSize),
+      meta: {
+        total: companies.length,
+        page,
+        limit: pageSize,
+        total_pages: Math.ceil(companies.length / pageSize)
+      },
+      crawl_status: {
+        total_indexed: companies.length,
+        last_indexed: "2024-01-27 15:30:00",
+        crawl_complete_percentage: 85
+      }
+    };
+  }
+
+  async searchFactions(params: FactionsSearchParams): Promise<any> {
+    const { 
+      page, 
+      minRespect,
+      maxRespect,
+      minMembers,
+      maxMembers,
+      minBestChain,
+      minAge,
+      sortBy, 
+      searchQuery 
+    } = params;
+
+    const pageSize = 20;
+    const startIndex = (page - 1) * pageSize;
+
+    // Generate mock faction data if empty
+    if (this.factionsData.size === 0) {
+      this.generateMockFactions();
+    }
+
+    let factions = Array.from(this.factionsData.values()).filter(faction => {
+      // Respect filter
+      if (faction.respect < minRespect || faction.respect > maxRespect) return false;
+
+      // Member count filter
+      if (faction.members < minMembers || faction.members > maxMembers) return false;
+
+      // Best chain filter
+      if (faction.best_chain < minBestChain) return false;
+
+      // Age filter
+      if (faction.age < minAge) return false;
+
+      // Search query filter
+      if (searchQuery && !faction.name.toLowerCase().includes(searchQuery.toLowerCase()) 
+          && !faction.tag.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+
+      return true;
+    });
+
+    // Sort factions
+    factions.sort((a, b) => {
+      switch (sortBy) {
+        case "respect-asc": return a.respect - b.respect;
+        case "respect-desc": return b.respect - a.respect;
+        case "members-asc": return a.members - b.members;
+        case "members-desc": return b.members - a.members;
+        case "age-asc": return a.age - b.age;
+        case "age-desc": return b.age - a.age;
+        default: return b.respect - a.respect;
+      }
+    });
+
+    return {
+      factions: factions.slice(startIndex, startIndex + pageSize),
+      meta: {
+        total: factions.length,
+        page,
+        limit: pageSize,
+        total_pages: Math.ceil(factions.length / pageSize)
+      },
+      crawl_status: {
+        total_indexed: factions.length,
+        last_indexed: "2024-01-27 15:30:00",
+        crawl_complete_percentage: 85
+      }
+    };
+  }
+
+  private generateMockCompanies() {
+    const companyTypes = ["Adult", "Logistics", "Medical", "Casino", "Law", "Computer", "Firework", "Flower"];
+    const companyNames = [
+      "Tech Solutions Inc", "Global Logistics", "City Medical Center", "Golden Casino",
+      "Legal Associates", "Code Masters", "Fireworks Factory", "Bloom Gardens",
+      "Data Systems", "Transport Hub", "Health Plus", "Lucky Palace",
+      "Justice Partners", "Digital Works", "Spark Factory", "Rose Gardens"
+    ];
+
+    for (let i = 1; i <= 200; i++) {
+      const company = {
+        id: 100000 + i,
+        name: companyNames[Math.floor(Math.random() * companyNames.length)] + ` ${i}`,
+        type: companyTypes[Math.floor(Math.random() * companyTypes.length)],
+        rating: Math.floor(Math.random() * 10) + 1,
+        employees: {
+          current: Math.floor(Math.random() * 50) + 5,
+          max: Math.floor(Math.random() * 20) + 50
+        },
+        director: {
+          id: 2000000 + i,
+          name: `Director${i}`
+        },
+        daily_income: Math.floor(Math.random() * 1000000) + 50000,
+        weekly_income: Math.floor(Math.random() * 7000000) + 350000,
+        days_old: Math.floor(Math.random() * 1000) + 30,
+        value: Math.floor(Math.random() * 50000000) + 1000000
+      };
+      this.companiesData.set(company.id, company);
+    }
+  }
+
+  private generateMockFactions() {
+    const factionNames = [
+      "Elite Warriors", "Shadow Syndicate", "Iron Brotherhood", "Phoenix Rising",
+      "Dark Legion", "Storm Riders", "Blood Eagles", "Silver Wolves",
+      "Crimson Guard", "Night Hawks", "Steel Titans", "Fire Dragons",
+      "Thunder Bolts", "Ice Hunters", "Wind Walkers", "Earth Shakers"
+    ];
+
+    for (let i = 1; i <= 150; i++) {
+      const faction = {
+        id: 10000 + i,
+        name: factionNames[Math.floor(Math.random() * factionNames.length)],
+        tag: `F${i.toString().padStart(3, '0')}`,
+        respect: Math.floor(Math.random() * 5000000) + 100000,
+        capacity: Math.floor(Math.random() * 50) + 25,
+        members: Math.floor(Math.random() * 40) + 15,
+        leader: {
+          id: 3000000 + i,
+          name: `Leader${i}`
+        },
+        territory: Math.floor(Math.random() * 10),
+        best_chain: Math.floor(Math.random() * 5000) + 100,
+        age: Math.floor(Math.random() * 2000) + 100,
+        weekly_stats: {
+          attacks: Math.floor(Math.random() * 1000) + 50,
+          defends: Math.floor(Math.random() * 500) + 25,
+          elo: Math.floor(Math.random() * 2000) + 1000
+        }
+      };
+      this.factionsData.set(faction.id, faction);
+    }
   }
 
   async getItems(params: ItemSearchParams): Promise<any> {
