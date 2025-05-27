@@ -886,6 +886,15 @@ export class TornAPI {
           // Log the wars data for debugging
           console.log("Recent wars data:", JSON.stringify(recentWars.slice(0, 2), null, 2));
           
+          // Debug timestamp comparison
+          console.log("Current timestamp:", currentTimestamp);
+          if (recentWars[0]) {
+            console.log("First war start timestamp:", recentWars[0].start);
+            console.log("War has started?", recentWars[0].start <= currentTimestamp);
+            console.log("Current time:", new Date(currentTimestamp * 1000).toISOString());
+            console.log("War start time:", new Date(recentWars[0].start * 1000).toISOString());
+          }
+          
           // Check for wars that have actually started and are ongoing
           const activeWars = recentWars.filter(war => 
             war.start <= currentTimestamp && (!war.end || war.end > currentTimestamp)
