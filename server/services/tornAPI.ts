@@ -886,9 +886,18 @@ export class TornAPI {
           // Log the wars data for debugging
           console.log("Recent wars data:", JSON.stringify(recentWars.slice(0, 2), null, 2));
           
-          // Check if there's an active war (no end time or end time in future)
-          const activeWars = recentWars.filter(war => !war.end || war.end > currentTimestamp);
+          // Check for wars that have actually started and are ongoing
+          const activeWars = recentWars.filter(war => 
+            war.start <= currentTimestamp && (!war.end || war.end > currentTimestamp)
+          );
+          
+          // Check for wars that are scheduled but haven't started yet
+          const scheduledWars = recentWars.filter(war => 
+            war.start > currentTimestamp && (!war.end || war.end > currentTimestamp)
+          );
+          
           console.log("Active wars count:", activeWars.length);
+          console.log("Scheduled wars count:", scheduledWars.length);
           
           // First, always show information about the last completed war
           const lastCompletedWar = recentWars.find(war => war.end);
@@ -899,7 +908,7 @@ export class TornAPI {
             
             console.log("Last war ended:", timeLabel);
             
-            // Always show days since last war
+            // Show days since last war - only show "War in progress" if war has actually started
             recentActivity.push({
               type: 'info',
               description: 'Days since last war',
@@ -909,9 +918,9 @@ export class TornAPI {
             });
           }
           
-          // Then, show information about active wars (or lack thereof)
+          // Show war status based on actual war state
           if (activeWars.length > 0) {
-            // We have an active war - show when it started
+            // We have a war that has actually started
             const mostRecentActiveWar = activeWars[0];
             const timeDiff = Math.floor((currentTimestamp - mostRecentActiveWar.start) / 3600);
             const timeLabel = timeDiff <= 24 ? `${timeDiff}h ago` : `${Math.floor(timeDiff / 24)}d ago`;
@@ -925,8 +934,23 @@ export class TornAPI {
               icon: 'swords',
               color: 'red'
             });
+          } else if (scheduledWars.length > 0) {
+            // We have a scheduled war that hasn't started yet
+            const nextScheduledWar = scheduledWars[0];
+            const timeUntilStart = Math.floor((nextScheduledWar.start - currentTimestamp) / 3600);
+            const timeLabel = timeUntilStart <= 24 ? `Starts in ${timeUntilStart}h` : `Starts in ${Math.floor(timeUntilStart / 24)}d`;
+            
+            console.log("Scheduled war detected, starts:", timeLabel);
+            
+            recentActivity.push({
+              type: 'war',
+              description: 'Faction war started',
+              time: 'Not started',
+              icon: 'swords',
+              color: 'orange'
+            });
           } else {
-            // No active wars
+            // No active or scheduled wars
             recentActivity.push({
               type: 'war',
               description: 'Faction war started',
