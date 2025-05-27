@@ -312,66 +312,69 @@ export default function FactionPage() {
                         const dropdown = document.getElementById("status-dropdown");
                         if (dropdown) {
                           dropdown.classList.toggle("hidden");
+
+                          // Generate status options dynamically when opening dropdown
+                          if (!dropdown.classList.contains("hidden") && faction.members) {
+                            try {
+                              // Clear existing options
+                              dropdown.innerHTML = '<div class="p-2 hover:bg-accent cursor-pointer status-option text-foreground" data-value="all">All Statuses</div>';
+
+                              // Extract unique statuses and descriptions
+                              const statuses = new Set<string>();
+                              Object.values(faction.members).forEach((member: any) => {
+                                if (member && member.last_action?.status) {
+                                  statuses.add(member.last_action.status);
+                                }
+                                if (member && member.status?.state === "Hospital") {
+                                  statuses.add("Hospital");
+                                }
+                                if (member && member.status?.description) {
+                                  statuses.add(member.status.description);
+                                }
+                              });
+
+                              // Add status options
+                              Array.from(statuses).sort().forEach(status => {
+                                const div = document.createElement("div");
+                                div.className = "p-2 hover:bg-accent cursor-pointer status-option text-foreground";
+                                div.setAttribute("data-value", status);
+                                div.textContent = status;
+                                div.onclick = () => {
+                                  setStatusFilter(status);
+                                  dropdown.classList.add("hidden");
+                                };
+                                dropdown.appendChild(div);
+                              });
+
+                              // Add click handler to "All Statuses" option
+                              const allOption = dropdown.querySelector('[data-value="all"]');
+                              if (allOption) {
+                                allOption.addEventListener("click", () => {
+                                  setStatusFilter("all");
+                                  dropdown.classList.add("hidden");
+                                });
+                              }
+                            } catch (error) {
+                              console.error("Error generating status options:", error);
+                            }
+                          }
                         }
                       }}
                     >
-                      <span>
-                        {statusFilter === "all" ? "All Statuses" : 
-                         statusFilter === "Online" ? "Online" :
-                         statusFilter === "Idle" ? "Idle" :
-                         statusFilter === "Hospital" ? "Hospital" : "Offline"}
-                      </span>
+                      <span>{statusFilter === "all" ? "All Statuses" : statusFilter}</span>
                       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="m6 9 6 6 6-6"/>
                       </svg>
                     </div>
 
-                    <div id="status-dropdown" className="absolute z-10 w-full mt-1 bg-background border border-border rounded-md shadow-lg hidden">
+                    <div id="status-dropdown" className="absolute z-10 w-full mt-1 bg-background border border-border rounded-md shadow-lg hidden max-h-60 overflow-y-auto">
                       <div 
-                        className="p-2 hover:bg-accent text-foreground cursor-pointer"
-                        onClick={() => {
-                          setStatusFilter("all");
-                          document.getElementById("status-dropdown")?.classList.add("hidden");
-                        }}
+                        className="p-2 hover:bg-accent text-foreground cursor-pointer status-option"
+                        data-value="all"
                       >
                         All Statuses
                       </div>
-                      <div 
-                        className="p-2 hover:bg-accent text-foreground cursor-pointer"
-                        onClick={() => {
-                          setStatusFilter("Online");
-                          document.getElementById("status-dropdown")?.classList.add("hidden");
-                        }}
-                      >
-                        Online
-                      </div>
-                      <div 
-                        className="p-2 hover:bg-accent text-foreground cursor-pointer"
-                        onClick={() => {
-                          setStatusFilter("Idle");
-                          document.getElementById("status-dropdown")?.classList.add("hidden");
-                        }}
-                      >
-                        Idle
-                      </div>
-                      <div 
-                        className="p-2 hover:bg-accent text-foreground cursor-pointer"
-                        onClick={() => {
-                          setStatusFilter("Offline");
-                          document.getElementById("status-dropdown")?.classList.add("hidden");
-                        }}
-                      >
-                        Offline
-                      </div>
-                      <div 
-                        className="p-2 hover:bg-accent text-foreground cursor-pointer"
-                        onClick={() => {
-                          setStatusFilter("Hospital");
-                          document.getElementById("status-dropdown")?.classList.add("hidden");
-                        }}
-                      >
-                        Hospital
-                      </div>
+                      {/* Status options will be populated dynamically */}
                     </div>
                   </div>
 
@@ -451,6 +454,7 @@ export default function FactionPage() {
                     <TableRow>
                       <TableHead className="w-[200px]">Name</TableHead>
                       <TableHead>Position</TableHead>
+                      <TableHead>Last Action</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Description</TableHead>
                       <TableHead>Revive Setting</TableHead>
@@ -468,9 +472,16 @@ export default function FactionPage() {
                           try {
                             const memberStatus = member.last_action?.status || "Offline";
                             const inHospital = member.status?.state === "Hospital";
-                            const displayStatus = inHospital ? "Hospital" : memberStatus;
+                            const memberDescription = member.status?.description || "Unknown";
 
-                            if (statusFilter !== 'all' && displayStatus !== statusFilter) return false;
+                            // Check against all possible filter criteria
+                            if (statusFilter !== 'all') {
+                              const matchesStatus = memberStatus === statusFilter ||
+                                                  (inHospital && statusFilter === "Hospital") ||
+                                                  memberDescription === statusFilter;
+                              if (!matchesStatus) return false;
+                            }
+                            
                             if (positionFilter !== 'all' && member.position !== positionFilter) return false;
                             if (searchQuery && !member.name?.toLowerCase().includes(searchQuery.toLowerCase())) return false;
                             return true;
@@ -486,23 +497,34 @@ export default function FactionPage() {
 
                           const memberStatus = member.last_action?.status || "Offline";
                           const inHospital = member.status?.state === "Hospital";
-                          const displayStatus = inHospital ? "Hospital" : memberStatus;
+                          const lastActionTime = member.last_action?.relative || "Unknown";
 
                           return (
                             <TableRow key={member.id || Math.random()} className="border-gray-700">
                               <TableCell className="font-medium">{member.name || "Unknown"}</TableCell>
                               <TableCell>{member.position || "Unknown"}</TableCell>
+                              <TableCell className="text-sm text-gray-400">{lastActionTime}</TableCell>
                               <TableCell>
                                 <Badge className={
-                                  displayStatus === 'Online' ? 'bg-green-500/20 text-green-500' :
-                                  displayStatus === 'Idle' ? 'bg-yellow-500/20 text-yellow-500' :
-                                  displayStatus === 'Hospital' ? 'bg-blue-500/20 text-blue-500' :
-                                  'bg-red-500/20 text-red-500'
+                                  memberStatus === 'Online' ? 'bg-green-500/20 text-green-500' :
+                                  memberStatus === 'Idle' ? 'bg-yellow-500/20 text-yellow-500' :
+                                  inHospital ? 'bg-red-500/20 text-red-500' :
+                                  'bg-gray-500/20 text-gray-400'
                                 }>
-                                  {displayStatus}
+                                  {inHospital ? 'Hospital' : memberStatus}
                                 </Badge>
                               </TableCell>
-                              <TableCell>{member.status?.description || "Unknown"}</TableCell>
+                              <TableCell>
+                                <Badge className={
+                                  member.status?.description === 'Okay' ? 'bg-green-500/20 text-green-500' :
+                                  member.status?.description === 'Traveling' ? 'bg-blue-500/20 text-blue-500' :
+                                  member.status?.description === 'Federal' ? 'bg-orange-500/20 text-orange-500' :
+                                  member.status?.description === 'Jail' ? 'bg-red-500/20 text-red-500' :
+                                  'bg-gray-500/20 text-gray-400'
+                                }>
+                                  {member.status?.description || "Unknown"}
+                                </Badge>
+                              </TableCell>
                               <TableCell>{member.revive_setting || "Unknown"}</TableCell>
                               <TableCell>
                                 {member.is_in_oc ? 

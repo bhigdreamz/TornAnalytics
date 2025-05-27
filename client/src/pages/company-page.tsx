@@ -127,7 +127,7 @@ export default function CompanyPage() {
     const lastActionStatus = employee.last_action && typeof employee.last_action === 'object' && 'status' in employee.last_action
       ? employee.last_action.status
       : employee.last_action;
-    
+
     return (statusFilter === "all" || 
             employee.status === statusFilter || 
             lastActionStatus === statusFilter) &&
@@ -190,7 +190,7 @@ export default function CompanyPage() {
         <title>Company Tracking | Byte-Core Vault</title>
         <meta name="description" content="Track your Torn RPG company employees and performance with Byte-Core Vault." />
       </Helmet>
-      
+
       {/* Back to Dashboard Button */}
       <div className="mb-6">
         <Button 
@@ -307,7 +307,7 @@ export default function CompanyPage() {
               />
             </div>
 
-           
+
             <div className="flex space-x-2">
                   {/* Custom Status Filter */}
                   <div className="w-[150px] relative">
@@ -460,16 +460,17 @@ export default function CompanyPage() {
           <div className="rounded-md border border-gray-700">
             <Table>
               <TableHeader>
-                <TableRow className="hover:bg-transparent border-gray-700">
-                  <TableHead className="w-[250px]">Employee</TableHead>
-                  <TableHead>Position</TableHead>
-                  <TableHead>Last Action</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Effectiveness</TableHead>
-                  <TableHead className="text-right">Days</TableHead>
-                  <TableHead className="text-right">Wage</TableHead>
-                </TableRow>
-              </TableHeader>
+                    <TableRow className="hover:bg-transparent border-gray-700">
+                      <TableHead className="w-[250px]">Employee</TableHead>
+                      <TableHead>Position</TableHead>
+                      <TableHead>Last Action</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Description</TableHead>
+                      <TableHead className="text-right">Effectiveness</TableHead>
+                      <TableHead className="text-right">Days</TableHead>
+                      <TableHead className="text-right">Wage</TableHead>
+                    </TableRow>
+                  </TableHeader>
               <TableBody>
                 {filteredEmployees && filteredEmployees.length > 0 ? (
                   filteredEmployees.map((employee) => (
