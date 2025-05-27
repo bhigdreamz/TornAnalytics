@@ -641,11 +641,13 @@ export default function FactionPage() {
 
                                   // Check if war has actually started
                                   const hasStarted = war.start <= currentTime;
-                                  const isWinning = hasStarted && ourFaction && opposingFaction && ourFaction.score > opposingFaction.score;
-                                  const isLosing = hasStarted && ourFaction && opposingFaction && ourFaction.score < opposingFaction.score;
-                                  const isTied = hasStarted && ourFaction && opposingFaction && ourFaction.score === opposingFaction.score;
+                                  const ourScore = ourFaction ? ourFaction.score : 0;
+                                  const theirScore = opposingFaction ? opposingFaction.score : 0;
+                                  const isWinning = hasStarted && ourScore > theirScore;
+                                  const isLosing = hasStarted && ourScore < theirScore;
+                                  const isTied = hasStarted && ourScore === theirScore;
 
-                                    return (
+                                  return (
                                     <TableRow key={`active-${index}`} className="hover:bg-blue-900/20">
                                       <TableCell className="font-medium">#{war.id}</TableCell>
                                       <TableCell>
@@ -709,8 +711,7 @@ export default function FactionPage() {
                   {/* Completed Wars Section */}
                   {(() => {
                     // Get current timestamp for comparison
-                    const currentTime = Math.floor(Date.now()```text
- / 1000);
+                    const currentTime = Math.floor(Date.now() / 1000);
 
                     // Filter completed wars (those with an end date in the past)
                     const completedWars = faction.recent_wars.filter((war: any) => war.end && war.end <= currentTime);
