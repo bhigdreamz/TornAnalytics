@@ -176,19 +176,28 @@ export default function FactionPage() {
                 </div>
               </div>
 
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => refetch()}
-                disabled={isFetching}
-              >
-                {isFetching ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <RefreshCw className="mr-2 h-4 w-4" />
-                )}
-                Refresh Data
-              </Button>
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => window.location.href = '/'}
+                >
+                  Back to Dashboard
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => refetch()}
+                  disabled={isFetching}
+                >
+                  {isFetching ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <RefreshCw className="mr-2 h-4 w-4" />
+                  )}
+                  Refresh Data
+                </Button>
+              </div>
             </div>
           </CardHeader>
 
@@ -306,9 +315,9 @@ export default function FactionPage() {
                       </svg>
                     </div>
 
-                    <div id="status-dropdown" className="absolute z-10 w-full mt-1 bg-gray-900 border border-gray-700 rounded-md shadow-lg hidden">
+                    <div id="status-dropdown" className="absolute z-10 w-full mt-1 bg-background border border-border rounded-md shadow-lg hidden">
                       <div 
-                        className="p-2 hover:bg-gray-800 cursor-pointer"
+                        className="p-2 hover:bg-accent text-foreground cursor-pointer"
                         onClick={() => {
                           setStatusFilter("all");
                           document.getElementById("status-dropdown")?.classList.add("hidden");
@@ -317,7 +326,7 @@ export default function FactionPage() {
                         All Statuses
                       </div>
                       <div 
-                        className="p-2 hover:bg-gray-800 cursor-pointer"
+                        className="p-2 hover:bg-accent text-foreground cursor-pointer"
                         onClick={() => {
                           setStatusFilter("Online");
                           document.getElementById("status-dropdown")?.classList.add("hidden");
@@ -326,7 +335,7 @@ export default function FactionPage() {
                         Online
                       </div>
                       <div 
-                        className="p-2 hover:bg-gray-800 cursor-pointer"
+                        className="p-2 hover:bg-accent text-foreground cursor-pointer"
                         onClick={() => {
                           setStatusFilter("Idle");
                           document.getElementById("status-dropdown")?.classList.add("hidden");
@@ -335,7 +344,7 @@ export default function FactionPage() {
                         Idle
                       </div>
                       <div 
-                        className="p-2 hover:bg-gray-800 cursor-pointer"
+                        className="p-2 hover:bg-accent text-foreground cursor-pointer"
                         onClick={() => {
                           setStatusFilter("Offline");
                           document.getElementById("status-dropdown")?.classList.add("hidden");
@@ -344,7 +353,7 @@ export default function FactionPage() {
                         Offline
                       </div>
                       <div 
-                        className="p-2 hover:bg-gray-800 cursor-pointer"
+                        className="p-2 hover:bg-accent text-foreground cursor-pointer"
                         onClick={() => {
                           setStatusFilter("Hospital");
                           document.getElementById("status-dropdown")?.classList.add("hidden");
@@ -381,7 +390,7 @@ export default function FactionPage() {
                               // Add position options
                               Array.from(positions).sort().forEach(position => {
                                 const div = document.createElement("div");
-                                div.className = "p-2 hover:bg-gray-800 cursor-pointer position-option text-gray-300";
+                                div.className = "p-2 hover:bg-accent cursor-pointer position-option text-foreground";
                                 div.setAttribute("data-value", position);
                                 div.textContent = position;
                                 div.onclick = () => {
@@ -412,9 +421,9 @@ export default function FactionPage() {
                       </svg>
                     </div>
 
-                    <div id="position-dropdown" className="absolute z-10 w-full mt-1 bg-gray-900 border border-gray-700 rounded-md shadow-lg hidden max-h-60 overflow-y-auto">
+                    <div id="position-dropdown" className="absolute z-10 w-full mt-1 bg-background border border-border rounded-md shadow-lg hidden max-h-60 overflow-y-auto">
                       <div 
-                        className="p-2 hover:bg-gray-800 cursor-pointer position-option"
+                        className="p-2 hover:bg-accent text-foreground cursor-pointer position-option"
                         data-value="all"
                       >
                         All Positions

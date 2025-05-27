@@ -307,17 +307,17 @@ export default function EmployeesSearchPage() {
                   </svg>
                 </div>
                 
-                <div id="job-type-dropdown" className="absolute z-10 w-full mt-1 bg-gray-900 border border-gray-700 rounded-md shadow-lg hidden">
-                  <div className="p-2 hover:bg-gray-800 cursor-pointer" onClick={() => { setCompanyType("all"); document.getElementById("job-type-dropdown")?.classList.add("hidden"); }}>All Types</div>
-                  <div className="p-2 hover:bg-gray-800 cursor-pointer" onClick={() => { setCompanyType("law"); document.getElementById("job-type-dropdown")?.classList.add("hidden"); }}>Law Firm</div>
-                  <div className="p-2 hover:bg-gray-800 cursor-pointer" onClick={() => { setCompanyType("medical"); document.getElementById("job-type-dropdown")?.classList.add("hidden"); }}>Medical</div>
-                  <div className="p-2 hover:bg-gray-800 cursor-pointer" onClick={() => { setCompanyType("casino"); document.getElementById("job-type-dropdown")?.classList.add("hidden"); }}>Casino</div>
-                  <div className="p-2 hover:bg-gray-800 cursor-pointer" onClick={() => { setCompanyType("education"); document.getElementById("job-type-dropdown")?.classList.add("hidden"); }}>Education</div>
-                  <div className="p-2 hover:bg-gray-800 cursor-pointer" onClick={() => { setCompanyType("nightclub"); document.getElementById("job-type-dropdown")?.classList.add("hidden"); }}>Nightclub</div>
-                  <div className="p-2 hover:bg-gray-800 cursor-pointer" onClick={() => { setCompanyType("oil"); document.getElementById("job-type-dropdown")?.classList.add("hidden"); }}>Oil Rig</div>
-                  <div className="p-2 hover:bg-gray-800 cursor-pointer" onClick={() => { setCompanyType("logistics"); document.getElementById("job-type-dropdown")?.classList.add("hidden"); }}>Logistics</div>
-                  <div className="p-2 hover:bg-gray-800 cursor-pointer" onClick={() => { setCompanyType("fitness"); document.getElementById("job-type-dropdown")?.classList.add("hidden"); }}>Fitness Center</div>
-                  <div className="p-2 hover:bg-gray-800 cursor-pointer" onClick={() => { setCompanyType("mechanic"); document.getElementById("job-type-dropdown")?.classList.add("hidden"); }}>Mechanic Shop</div>
+                <div id="job-type-dropdown" className="absolute z-10 w-full mt-1 bg-background border border-border rounded-md shadow-lg hidden">
+                  <div className="p-2 hover:bg-accent text-foreground cursor-pointer" onClick={() => { setCompanyType("all"); document.getElementById("job-type-dropdown")?.classList.add("hidden"); }}>All Types</div>
+                  <div className="p-2 hover:bg-accent text-foreground cursor-pointer" onClick={() => { setCompanyType("law"); document.getElementById("job-type-dropdown")?.classList.add("hidden"); }}>Law Firm</div>
+                  <div className="p-2 hover:bg-accent text-foreground cursor-pointer" onClick={() => { setCompanyType("medical"); document.getElementById("job-type-dropdown")?.classList.add("hidden"); }}>Medical</div>
+                  <div className="p-2 hover:bg-accent text-foreground cursor-pointer" onClick={() => { setCompanyType("casino"); document.getElementById("job-type-dropdown")?.classList.add("hidden"); }}>Casino</div>
+                  <div className="p-2 hover:bg-accent text-foreground cursor-pointer" onClick={() => { setCompanyType("education"); document.getElementById("job-type-dropdown")?.classList.add("hidden"); }}>Education</div>
+                  <div className="p-2 hover:bg-accent text-foreground cursor-pointer" onClick={() => { setCompanyType("nightclub"); document.getElementById("job-type-dropdown")?.classList.add("hidden"); }}>Nightclub</div>
+                  <div className="p-2 hover:bg-accent text-foreground cursor-pointer" onClick={() => { setCompanyType("oil"); document.getElementById("job-type-dropdown")?.classList.add("hidden"); }}>Oil Rig</div>
+                  <div className="p-2 hover:bg-accent text-foreground cursor-pointer" onClick={() => { setCompanyType("logistics"); document.getElementById("job-type-dropdown")?.classList.add("hidden"); }}>Logistics</div>
+                  <div className="p-2 hover:bg-accent text-foreground cursor-pointer" onClick={() => { setCompanyType("fitness"); document.getElementById("job-type-dropdown")?.classList.add("hidden"); }}>Fitness Center</div>
+                  <div className="p-2 hover:bg-accent text-foreground cursor-pointer" onClick={() => { setCompanyType("mechanic"); document.getElementById("job-type-dropdown")?.classList.add("hidden"); }}>Mechanic Shop</div>
                 </div>
               </div>
             </div>
@@ -347,7 +347,7 @@ export default function EmployeesSearchPage() {
 
               <Button 
                 variant="outline" 
-                onClick={resetFilters}
+                onClick={() => window.location.href = '/'}
                 className="flex-1 sm:flex-none"
               >
                 Back to Dashboard

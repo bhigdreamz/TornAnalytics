@@ -397,10 +397,10 @@ export default function FactionSearchPage() {
                     </svg>
                   </div>
                   
-                  <div id="donator-status-dropdown" className="absolute z-10 w-full mt-1 bg-gray-900 border border-gray-700 rounded-md shadow-lg hidden">
-                    <div className="p-2 hover:bg-gray-800 cursor-pointer text-gray-300" onClick={() => { setDonatorStatus("any"); document.getElementById("donator-status-dropdown")?.classList.add("hidden"); }}>Any</div>
-                    <div className="p-2 hover:bg-gray-800 cursor-pointer text-gray-300" onClick={() => { setDonatorStatus("yes"); document.getElementById("donator-status-dropdown")?.classList.add("hidden"); }}>Yes</div>
-                    <div className="p-2 hover:bg-gray-800 cursor-pointer text-gray-300" onClick={() => { setDonatorStatus("no"); document.getElementById("donator-status-dropdown")?.classList.add("hidden"); }}>No</div>
+                  <div id="donator-status-dropdown" className="absolute z-10 w-full mt-1 bg-background border border-border rounded-md shadow-lg hidden">
+                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setDonatorStatus("any"); document.getElementById("donator-status-dropdown")?.classList.add("hidden"); }}>Any</div>
+                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setDonatorStatus("yes"); document.getElementById("donator-status-dropdown")?.classList.add("hidden"); }}>Yes</div>
+                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setDonatorStatus("no"); document.getElementById("donator-status-dropdown")?.classList.add("hidden"); }}>No</div>
                   </div>
                 </div>
               </div>
@@ -433,7 +433,7 @@ export default function FactionSearchPage() {
               
               <Button 
                 variant="outline" 
-                onClick={resetFilters}
+                onClick={() => window.location.href = '/'}
                 className="flex-1 sm:flex-none"
               >
                 Back to Dashboard

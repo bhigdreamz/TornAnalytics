@@ -84,12 +84,12 @@ export default function CompanyPage() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [positionFilter, setPositionFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
-  
+
   const { data, isLoading, isError, refetch, isFetching } = useQuery<CompanyDetailResponse>({
     queryKey: ["/api/company/detail"],
     enabled: !!user?.apiKey
   });
-  
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "Online": return "text-green-500";
@@ -99,7 +99,7 @@ export default function CompanyPage() {
       default: return "text-gray-400";
     }
   };
-  
+
   const getStatusBadge = (status: string) => {
     switch (status?.toLowerCase()) {
       case "online": 
@@ -120,7 +120,7 @@ export default function CompanyPage() {
         return <Badge variant="outline">{status}</Badge>;
     }
   };
-  
+
   const filteredEmployees = data?.employees.list.filter(employee => {
     return (statusFilter === "all" || employee.status === statusFilter) &&
            (positionFilter === "all" || employee.position === positionFilter) &&
@@ -128,7 +128,12 @@ export default function CompanyPage() {
             employee.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
             employee.position.toLowerCase().includes(searchQuery.toLowerCase()));
   });
-  
+
+    // Extract unique positions from employees
+    const uniquePositions = Array.from(
+        new Set(data?.employees.list.map(emp => emp.position) || [])
+    );
+
   if (isLoading) {
     return (
       <MainLayout title="Company Tracking">
@@ -143,12 +148,12 @@ export default function CompanyPage() {
       </MainLayout>
     );
   }
-  
+
   if (isError || !data) {
     const errorMessage = user?.apiKey 
       ? "Failed to load company data. You might not be in a company or there was an API error."
       : "Please add your Torn API key in settings to view your company data.";
-    
+
     return (
       <MainLayout title="Company Tracking">
         <Helmet>
@@ -170,14 +175,14 @@ export default function CompanyPage() {
       </MainLayout>
     );
   }
-  
+
   return (
     <MainLayout title="Company Tracking">
       <Helmet>
         <title>Company Tracking | Byte-Core Vault</title>
         <meta name="description" content="Track your Torn RPG company employees and performance with Byte-Core Vault." />
       </Helmet>
-      
+
       <div className="mb-6">
         <Card className="border-gray-700 bg-game-dark shadow-game">
           <CardHeader className="pb-2">
@@ -191,7 +196,7 @@ export default function CompanyPage() {
                   <p className="text-sm text-gray-400">ID: #{data.id} • {data.type} • {data.rating} Stars</p>
                 </div>
               </div>
-              
+
               <Button 
                 variant="outline" 
                 size="sm" 
@@ -207,7 +212,7 @@ export default function CompanyPage() {
               </Button>
             </div>
           </CardHeader>
-          
+
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
               <div className="bg-game-panel rounded p-3 border border-gray-700">
@@ -222,7 +227,7 @@ export default function CompanyPage() {
                   />
                 </div>
               </div>
-              
+
               <div className="bg-game-panel rounded p-3 border border-gray-700">
                 <div className="text-xs text-gray-400 mb-1">POPULARITY</div>
                 <div className="text-xl font-rajdhani font-bold">
@@ -235,7 +240,7 @@ export default function CompanyPage() {
                   />
                 </div>
               </div>
-              
+
               <div className="bg-game-panel rounded p-3 border border-gray-700">
                 <div className="text-xs text-gray-400 mb-1">EFFICIENCY</div>
                 <div className="text-xl font-rajdhani font-bold">
@@ -248,7 +253,7 @@ export default function CompanyPage() {
                   />
                 </div>
               </div>
-              
+
               <div className="bg-game-panel rounded p-3 border border-gray-700">
                 <div className="text-xs text-gray-400 mb-1">WEEKLY PROFIT</div>
                 <div className="text-xl font-rajdhani font-bold text-green-400">
@@ -262,12 +267,12 @@ export default function CompanyPage() {
           </CardContent>
         </Card>
       </div>
-      
+
       <Card className="border-gray-700 bg-game-dark shadow-game">
         <CardHeader>
           <CardTitle>Employee Management</CardTitle>
         </CardHeader>
-        
+
         <CardContent>
           <div className="flex flex-col md:flex-row justify-between space-y-2 md:space-y-0 md:space-x-2 mb-4">
             <div className="flex-1">
@@ -278,40 +283,124 @@ export default function CompanyPage() {
                 className="w-full bg-game-panel border-gray-700"
               />
             </div>
-            
+
+           
             <div className="flex space-x-2">
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-[150px] bg-game-panel border-gray-700">
-                  <SelectValue placeholder="Filter by status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Statuses</SelectItem>
-                  <SelectItem value="Online">Online</SelectItem>
-                  <SelectItem value="Idle">Idle</SelectItem>
-                  <SelectItem value="Offline">Offline</SelectItem>
-                  <SelectItem value="Hospital">Hospital</SelectItem>
-                </SelectContent>
-              </Select>
-              
-              <Select value={positionFilter} onValueChange={setPositionFilter}>
-                <SelectTrigger className="w-[150px] bg-game-panel border-gray-700">
-                  <SelectValue placeholder="Filter by position" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Positions</SelectItem>
-                  {/* Extract unique positions from employees */}
-                  {Array.from(
-                    new Set(data.employees.list.map(emp => emp.position))
-                  ).map(position => (
-                    <SelectItem key={position} value={position}>
-                      {position}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+                  {/* Custom Status Filter */}
+                  <div className="w-[150px] relative">
+                    <div 
+                      className="w-full p-2 bg-game-panel border border-gray-700 rounded-md flex items-center justify-between text-sm cursor-pointer hover:bg-gray-800"
+                      onClick={() => {
+                        const dropdown = document.getElementById("company-status-dropdown");
+                        if (dropdown) {
+                          dropdown.classList.toggle("hidden");
+                        }
+                      }}
+                    >
+                      <span>
+                        {statusFilter === "all" ? "All Statuses" : 
+                         statusFilter === "Online" ? "Online" :
+                         statusFilter === "Idle" ? "Idle" :
+                         statusFilter === "Hospital" ? "Hospital" : "Offline"}
+                      </span>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="m6 9 6 6 6-6"/>
+                      </svg>
+                    </div>
+
+                    <div id="company-status-dropdown" className="absolute z-10 w-full mt-1 bg-background border border-border rounded-md shadow-lg hidden">
+                      <div 
+                        className="p-2 hover:bg-accent text-foreground cursor-pointer"
+                        onClick={() => {
+                          setStatusFilter("all");
+                          document.getElementById("company-status-dropdown")?.classList.add("hidden");
+                        }}
+                      >
+                        All Statuses
+                      </div>
+                      <div 
+                        className="p-2 hover:bg-accent text-foreground cursor-pointer"
+                        onClick={() => {
+                          setStatusFilter("Online");
+                          document.getElementById("company-status-dropdown")?.classList.add("hidden");
+                        }}
+                      >
+                        Online
+                      </div>
+                      <div 
+                        className="p-2 hover:bg-accent text-foreground cursor-pointer"
+                        onClick={() => {
+                          setStatusFilter("Idle");
+                          document.getElementById("company-status-dropdown")?.classList.add("hidden");
+                        }}
+                      >
+                        Idle
+                      </div>
+                      <div 
+                        className="p-2 hover:bg-accent text-foreground cursor-pointer"
+                        onClick={() => {
+                          setStatusFilter("Offline");
+                          document.getElementById("company-status-dropdown")?.classList.add("hidden");
+                        }}
+                      >
+                        Offline
+                      </div>
+                      <div 
+                        className="p-2 hover:bg-accent text-foreground cursor-pointer"
+                        onClick={() => {
+                          setStatusFilter("Hospital");
+                          document.getElementById("company-status-dropdown")?.classList.add("hidden");
+                        }}
+                      >
+                        Hospital
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Custom Position Filter */}
+                  <div className="w-[150px] relative">
+                    <div 
+                      className="w-full p-2 bg-game-panel border border-gray-700 rounded-md flex items-center justify-between text-sm cursor-pointer hover:bg-gray-800"
+                      onClick={() => {
+                        const dropdown = document.getElementById("company-position-dropdown");
+                        if (dropdown) {
+                          dropdown.classList.toggle("hidden");
+                        }
+                      }}
+                    >
+                      <span>{positionFilter === "all" ? "All Positions" : positionFilter}</span>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="m6 9 6 6 6-6"/>
+                      </svg>
+                    </div>
+
+                    <div id="company-position-dropdown" className="absolute z-10 w-full mt-1 bg-background border border-border rounded-md shadow-lg hidden max-h-60 overflow-y-auto">
+                      <div 
+                        className="p-2 hover:bg-accent text-foreground cursor-pointer"
+                        onClick={() => {
+                          setPositionFilter("all");
+                          document.getElementById("company-position-dropdown")?.classList.add("hidden");
+                        }}
+                      >
+                        All Positions
+                      </div>
+                      {uniquePositions.map(position => (
+                        <div 
+                          key={position}
+                          className="p-2 hover:bg-accent text-foreground cursor-pointer"
+                          onClick={() => {
+                            setPositionFilter(position);
+                            document.getElementById("company-position-dropdown")?.classList.add("hidden");
+                          }}
+                        >
+                          {position}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
           </div>
-          
+
           <div className="rounded-md border border-gray-700">
             <Table>
               <TableHeader>
@@ -372,7 +461,7 @@ export default function CompanyPage() {
               </TableBody>
             </Table>
           </div>
-          
+
           <div className="text-xs text-gray-400 mt-2 text-right">
             Showing {filteredEmployees?.length || 0} of {data.employees.list.length} employees
           </div>
