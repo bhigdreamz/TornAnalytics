@@ -9,7 +9,8 @@ import { PlayerStats as PlayerStatsType } from "@/types/torn";
 export default function PlayerStats() {
   const { data: playerStats, isLoading, error } = useQuery<PlayerStatsType>({
     queryKey: ['/api/player/stats'],
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: 0, // Force fresh data every time
+    cacheTime: 0, // Don't cache the response
   });
   
   // Helper function to safely access nested properties
