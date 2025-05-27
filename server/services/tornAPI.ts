@@ -340,6 +340,11 @@ export class TornAPI {
           bank: data.money_inbank || 0,
           points: data.points || 0
         },
+        // Add the raw financial fields that frontend expects
+        money_onhand: data.money_onhand || 0,
+        points: data.points || 0,
+        daily_networth: data.daily_networth || 0,
+        city_bank: data.city_bank || { amount: 0, time_left: 0 },
         faction: data.faction ? {
           id: data.faction.faction_id || 0,
           name: data.faction.faction_name || "Unknown",
