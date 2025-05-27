@@ -320,22 +320,22 @@ export default function PlayerStats() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div className="flex items-center justify-between py-2 border-b border-gray-700">
                 <span className="text-sm">Cash</span>
-                <span className="font-mono font-medium text-green-400">${formatNumber(safeObj(playerStats, 'money.current', 0))}</span>
+                <span className="font-mono font-medium text-green-400">${formatNumber(safeObj(playerStats, 'money_onhand', 0))}</span>
               </div>
               
               <div className="flex items-center justify-between py-2 border-b border-gray-700">
                 <span className="text-sm">Points</span>
-                <span className="font-mono font-medium text-yellow-400">{formatNumber(safeObj(playerStats, 'money.points', 0))}</span>
+                <span className="font-mono font-medium text-yellow-400">{formatNumber(safeObj(playerStats, 'points', 0))}</span>
               </div>
               
               <div className="flex items-center justify-between py-2 border-b border-gray-700">
                 <span className="text-sm">Bank</span>
-                <span className="font-mono font-medium text-green-400">${formatNumber(safeObj(playerStats, 'money.bank', 0))}</span>
+                <span className="font-mono font-medium text-green-400">${formatNumber(safeObj(playerStats, 'city_bank.amount', 0))}</span>
               </div>
               
               <div className="flex items-center justify-between py-2 border-b border-gray-700">
-                <span className="text-sm">Total</span>
-                <span className="font-mono font-medium text-blue-400">${formatNumber((safeObj(playerStats, 'money.current', 0) + safeObj(playerStats, 'money.bank', 0)))}</span>
+                <span className="text-sm">Net Worth</span>
+                <span className="font-mono font-medium text-blue-400">${formatNumber(safeObj(playerStats, 'daily_networth', 0))}</span>
               </div>
             </div>
           </div>
