@@ -3,6 +3,8 @@ import PlayerStats from "@/components/dashboard/PlayerStats";
 import CompanyTracking from "@/components/dashboard/CompanyTracking";
 import FactionTracking from "@/components/dashboard/FactionTracking";
 import TornBazaar from "@/components/dashboard/TornBazaar";
+import EmployeeSearchCard from "@/components/dashboard/EmployeeSearchCard";
+import FactionSearchCard from "@/components/dashboard/FactionSearchCard";
 import { Helmet } from "react-helmet";
 
 export default function HomePage() {
@@ -18,6 +20,8 @@ export default function HomePage() {
           <CompanyTracking />
           <FactionTracking />
           <TornBazaar />
+          <EmployeeSearchCard />
+          <FactionSearchCard />
         </div>
       </MainLayout>
     </>
