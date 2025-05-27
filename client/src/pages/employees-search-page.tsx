@@ -3,6 +3,7 @@ import MainLayout from "@/components/layouts/MainLayout";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { Helmet } from "react-helmet";
+import { useLocation } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Loader2, AlertCircle, Users, RefreshCw, Search, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -76,6 +77,7 @@ interface EmployeeSearchResponse {
 
 export default function EmployeesSearchPage() {
   const { user } = useAuth();
+  const [, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
   const [companyType, setCompanyType] = useState("all");
   const [minLevel, setMinLevel] = useState(1);
@@ -347,7 +349,7 @@ export default function EmployeesSearchPage() {
 
               <Button 
                 variant="outline" 
-                onClick={() => window.location.href = '/'}
+                onClick={() => setLocation('/')}
                 className="flex-1 sm:flex-none"
               >
                 Back to Dashboard

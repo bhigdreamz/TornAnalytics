@@ -3,6 +3,7 @@ import MainLayout from "@/components/layouts/MainLayout";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { Helmet } from "react-helmet";
+import { useLocation } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, AlertCircle, Building, RefreshCw } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
@@ -81,6 +82,7 @@ interface CompanyDetailResponse {
 
 export default function CompanyPage() {
   const { user } = useAuth();
+  const [, setLocation] = useLocation();
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [positionFilter, setPositionFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -188,6 +190,21 @@ export default function CompanyPage() {
         <title>Company Tracking | Byte-Core Vault</title>
         <meta name="description" content="Track your Torn RPG company employees and performance with Byte-Core Vault." />
       </Helmet>
+      
+      {/* Back to Dashboard Button */}
+      <div className="mb-6">
+        <Button 
+          variant="outline" 
+          onClick={() => setLocation('/')}
+          className="flex items-center gap-2"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="m12 19-7-7 7-7"/>
+            <path d="M19 12H5"/>
+          </svg>
+          Back to Dashboard
+        </Button>
+      </div>
 
       <div className="mb-6">
         <Card className="border-gray-700 bg-game-dark shadow-game">
