@@ -316,50 +316,28 @@ export default function FactionPage() {
                           // Generate status options dynamically when opening dropdown
                           if (!dropdown.classList.contains("hidden") && faction.members) {
                             try {
-                              // Clear existing options
-                              dropdown.innerHTML = '<div class="p-2 hover:bg-accent cursor-pointer status-option text-foreground" data-value="all">All Statuses</div>';
+                              // Clear existing options and add basic status categories
+                              dropdown.innerHTML = `
+                                <div class="p-2 hover:bg-accent cursor-pointer status-option text-foreground" data-value="all">All Statuses</div>
+                                <div class="p-2 hover:bg-accent cursor-pointer status-option text-foreground" data-value="Online">Online</div>
+                                <div class="p-2 hover:bg-accent cursor-pointer status-option text-foreground" data-value="Idle">Idle</div>
+                                <div class="p-2 hover:bg-accent cursor-pointer status-option text-foreground" data-value="Offline">Offline</div>
+                                <div class="p-2 hover:bg-accent cursor-pointer status-option text-foreground" data-value="Hospital">Hospital</div>
+                                <div class="p-2 hover:bg-accent cursor-pointer status-option text-foreground" data-value="Traveling">Traveling</div>
+                                <div class="p-2 hover:bg-accent cursor-pointer status-option text-foreground" data-value="Jail">Jail</div>
+                                <div class="p-2 hover:bg-accent cursor-pointer status-option text-foreground" data-value="Federal">Federal</div>
+                                <div class="p-2 hover:bg-accent cursor-pointer status-option text-foreground" data-value="Okay">Okay</div>
+                              `;
 
-                              // Extract unique statuses and descriptions
-                              const statuses = new Set<string>();
-                              Object.values(faction.members).forEach((member: any) => {
-                                if (member && member.last_action?.status) {
-                                  statuses.add(member.last_action.status);
-                                }
-                                if (member && member.status?.state === "Hospital") {
-                                  statuses.add("Hospital");
-                                }
-                                if (member && member.status?.description) {
-                                  // Group all traveling variants under "Traveling"
-                                  if (member.status.description.toLowerCase().includes('traveling') || 
-                                      member.status.description.toLowerCase().includes('returning')) {
-                                    statuses.add("Traveling");
-                                  } else {
-                                    statuses.add(member.status.description);
-                                  }
-                                }
-                              });
-
-                              // Add status options
-                              Array.from(statuses).sort().forEach(status => {
-                                const div = document.createElement("div");
-                                div.className = "p-2 hover:bg-accent cursor-pointer status-option text-foreground";
-                                div.setAttribute("data-value", status);
-                                div.textContent = status;
-                                div.onclick = () => {
-                                  setStatusFilter(status);
-                                  dropdown.classList.add("hidden");
-                                };
-                                dropdown.appendChild(div);
-                              });
-
-                              // Add click handler to "All Statuses" option
-                              const allOption = dropdown.querySelector('[data-value="all"]');
-                              if (allOption) {
-                                allOption.addEventListener("click", () => {
-                                  setStatusFilter("all");
+                              // Add click handlers to all options
+                              dropdown.querySelectorAll('.status-option').forEach(option => {
+                                option.addEventListener("click", () => {
+                                  const value = option.getAttribute("data-value");
+                                  setStatusFilter(value || "all");
                                   dropdown.classList.add("hidden");
                                 });
-                              }
+                              });
+
                             } catch (error) {
                               console.error("Error generating status options:", error);
                             }
@@ -482,12 +460,40 @@ export default function FactionPage() {
 
                             // Check against all possible filter criteria
                             if (statusFilter !== 'all') {
-                              const isTraveling = memberDescription.toLowerCase().includes('traveling') || 
-                                                memberDescription.toLowerCase().includes('returning');
-                              const matchesStatus = memberStatus === statusFilter ||
-                                                  (inHospital && statusFilter === "Hospital") ||
-                                                  memberDescription === statusFilter ||
-                                                  (isTraveling && statusFilter === "Traveling");
+                              let matchesStatus = false;
+                              
+                              switch (statusFilter) {
+                                case "Online":
+                                  matchesStatus = memberStatus === "Online";
+                                  break;
+                                case "Idle":
+                                  matchesStatus = memberStatus === "Idle";
+                                  break;
+                                case "Offline":
+                                  matchesStatus = memberStatus === "Offline";
+                                  break;
+                                case "Hospital":
+                                  matchesStatus = inHospital || memberDescription.toLowerCase().includes('hospital');
+                                  break;
+                                case "Traveling":
+                                  matchesStatus = memberDescription.toLowerCase().includes('traveling') || 
+                                                 memberDescription.toLowerCase().includes('returning') ||
+                                                 memberDescription.toLowerCase().includes('switzerland') ||
+                                                 memberDescription.toLowerCase().includes('abroad');
+                                  break;
+                                case "Jail":
+                                  matchesStatus = memberDescription.toLowerCase().includes('jail');
+                                  break;
+                                case "Federal":
+                                  matchesStatus = memberDescription.toLowerCase().includes('federal');
+                                  break;
+                                case "Okay":
+                                  matchesStatus = memberDescription === "Okay";
+                                  break;
+                                default:
+                                  matchesStatus = false;
+                              }
+                              
                               if (!matchesStatus) return false;
                             }
                             
