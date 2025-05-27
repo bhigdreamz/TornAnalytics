@@ -438,8 +438,7 @@ export class MemStorage implements IStorage {
       if (player.work_stats.endurance < minEndurance) return false;
       if (player.work_stats.manual_labor < minManualLabor) return false;
 
-      // Company type filter
-      if (companyType !== 'all' && (!player.current_company || player.current_company.type !== companyType)) return false;
+      // Company type filter - this is now just for sorting/suitability, not exclusion
 
       // Search query filter
       if (searchQuery && !player.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;

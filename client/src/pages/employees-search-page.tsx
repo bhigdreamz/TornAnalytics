@@ -95,7 +95,7 @@ export default function EmployeesSearchPage() {
   const [minManualLabor, setMinManualLabor] = useState(0);
   const [page, setPage] = useState(1);
   const [sortBy, setSortBy] = useState("level-desc");
-  
+
   const { data, isLoading, isError, refetch, isFetching } = useQuery<EmployeeSearchResponse>({
     queryKey: [
       "/api/employees/search", 
@@ -111,7 +111,7 @@ export default function EmployeesSearchPage() {
     ],
     enabled: !!user?.apiKey
   });
-  
+
   // Reset filters
   const resetFilters = () => {
     setSearchQuery("");
@@ -124,7 +124,7 @@ export default function EmployeesSearchPage() {
     setSortBy("level-desc");
     setPage(1);
   };
-  
+
   const getSuitabilityColor = (score: number) => {
     if (score >= 90) return "text-green-500";
     if (score >= 70) return "text-lime-500";
@@ -132,13 +132,13 @@ export default function EmployeesSearchPage() {
     if (score >= 30) return "text-orange-500";
     return "text-red-500";
   };
-  
+
   if (isLoading) {
     return (
       <MainLayout title="Employees Search">
         <Helmet>
           <title>Employees Search | Byte-Core Vault</title>
-          <meta name="description" content="Find potential employees for your Torn RPG company with Byte-Core Vault's powerful search tools." />
+          <meta name="description" content="Search for potential employees using advanced filters for stats, level, and company preferences with Byte-Core Vault." />
         </Helmet>
         <div className="flex justify-center items-center h-64">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -147,17 +147,17 @@ export default function EmployeesSearchPage() {
       </MainLayout>
     );
   }
-  
+
   if (isError || !data) {
     const errorMessage = user?.apiKey 
       ? "Failed to load employee data. Please check your API key or try again later."
       : "Please add your Torn API key in settings to search for potential employees.";
-    
+
     return (
       <MainLayout title="Employees Search">
         <Helmet>
           <title>Employees Search | Byte-Core Vault</title>
-          <meta name="description" content="Find potential employees for your Torn RPG company with Byte-Core Vault's powerful search tools." />
+          <meta name="description" content="Search for potential employees using advanced filters for stats, level, and company preferences with Byte-Core Vault." />
         </Helmet>
         <Card className="border-gray-700 bg-game-dark shadow-game">
           <CardContent className="p-6 flex flex-col items-center justify-center text-center">
@@ -174,14 +174,14 @@ export default function EmployeesSearchPage() {
       </MainLayout>
     );
   }
-  
+
   return (
     <MainLayout title="Employees Search">
       <Helmet>
         <title>Employees Search | Byte-Core Vault</title>
-        <meta name="description" content="Find potential employees for your Torn RPG company with Byte-Core Vault's powerful search tools." />
+        <meta name="description" content="Search for potential employees using advanced filters for stats, level, and company preferences with Byte-Core Vault." />
       </Helmet>
-      
+
       <Card className="border-gray-700 bg-game-dark shadow-game mb-6">
         <CardHeader>
           <div className="flex justify-between items-center">
@@ -209,7 +209,7 @@ export default function EmployeesSearchPage() {
             </Button>
           </div>
         </CardHeader>
-        
+
         <CardContent>
           <div className="space-y-4">
             <div className="flex flex-col md:flex-row gap-4">
@@ -225,7 +225,7 @@ export default function EmployeesSearchPage() {
                   className="pl-10 bg-game-panel border-gray-700"
                 />
               </div>
-              
+
               <div className="w-full md:w-1/3">
                 <Select value={companyType} onValueChange={(value) => {
                   setCompanyType(value);
@@ -242,7 +242,7 @@ export default function EmployeesSearchPage() {
                   </SelectContent>
                 </Select>
               </div>
-              
+
               <div className="w-full md:w-1/3">
                 <Select value={sortBy} onValueChange={(value) => {
                   setSortBy(value);
@@ -262,7 +262,7 @@ export default function EmployeesSearchPage() {
                 </Select>
               </div>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <div className="flex justify-between items-center mb-1">
@@ -312,7 +312,7 @@ export default function EmployeesSearchPage() {
                   />
                 </div>
               </div>
-              
+
               <div>
                 <div className="flex justify-between items-center mb-1">
                   <label className="text-sm text-gray-400">
@@ -343,7 +343,7 @@ export default function EmployeesSearchPage() {
                   }}
                 />
               </div>
-              
+
               <div>
                 <div className="flex justify-between items-center mb-1">
                   <label className="text-sm text-gray-400">
@@ -374,7 +374,7 @@ export default function EmployeesSearchPage() {
                   }}
                 />
               </div>
-              
+
               <div>
                 <div className="flex justify-between items-center mb-1">
                   <label className="text-sm text-gray-400">
@@ -406,7 +406,7 @@ export default function EmployeesSearchPage() {
                 />
               </div>
             </div>
-            
+
             <div className="flex justify-end">
               <Button 
                 variant="outline" 
@@ -416,7 +416,7 @@ export default function EmployeesSearchPage() {
                 Reset Filters
               </Button>
             </div>
-            
+
             <div className="flex items-center justify-between pt-2 border-t border-gray-700">
               <div className="text-sm text-gray-400">
                 Crawler Status: <span className="text-white">{data.crawl_status.crawl_complete_percentage}% complete</span>
@@ -429,7 +429,7 @@ export default function EmployeesSearchPage() {
           </div>
         </CardContent>
       </Card>
-      
+
       <Card className="border-gray-700 bg-game-dark shadow-game">
         <CardHeader>
           <CardTitle>Employee Candidates</CardTitle>
@@ -437,7 +437,7 @@ export default function EmployeesSearchPage() {
             Players who are currently not employed or in different company types
           </CardDescription>
         </CardHeader>
-        
+
         <CardContent>
           {data.candidates.length > 0 ? (
             <div className="rounded-md border border-gray-700">
@@ -542,7 +542,7 @@ export default function EmployeesSearchPage() {
               </Button>
             </div>
           )}
-          
+
           {data.meta.total_pages > 1 && (
             <div className="mt-6">
               <Pagination>
@@ -554,21 +554,21 @@ export default function EmployeesSearchPage() {
                       className={page === 1 ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
                     />
                   </PaginationItem>
-                  
+
                   {/* First page */}
                   {page > 3 && (
                     <PaginationItem>
                       <PaginationLink onClick={() => setPage(1)}>1</PaginationLink>
                     </PaginationItem>
                   )}
-                  
+
                   {/* Ellipsis if needed */}
                   {page > 4 && (
                     <PaginationItem>
                       <span className="px-4">...</span>
                     </PaginationItem>
                   )}
-                  
+
                   {/* Page before current if not first page */}
                   {page > 1 && (
                     <PaginationItem>
@@ -577,12 +577,12 @@ export default function EmployeesSearchPage() {
                       </PaginationLink>
                     </PaginationItem>
                   )}
-                  
+
                   {/* Current page */}
                   <PaginationItem>
                     <PaginationLink isActive>{page}</PaginationLink>
                   </PaginationItem>
-                  
+
                   {/* Page after current if not last page */}
                   {page < data.meta.total_pages && (
                     <PaginationItem>
@@ -591,14 +591,14 @@ export default function EmployeesSearchPage() {
                       </PaginationLink>
                     </PaginationItem>
                   )}
-                  
+
                   {/* Ellipsis if needed */}
                   {page < data.meta.total_pages - 3 && (
                     <PaginationItem>
                       <span className="px-4">...</span>
                     </PaginationItem>
                   )}
-                  
+
                   {/* Last page if not close to current */}
                   {page < data.meta.total_pages - 2 && (
                     <PaginationItem>
@@ -607,7 +607,7 @@ export default function EmployeesSearchPage() {
                       </PaginationLink>
                     </PaginationItem>
                   )}
-                  
+
                   <PaginationItem>
                     <PaginationNext 
                       onClick={() => setPage(p => Math.min(data.meta.total_pages, p + 1))} 
@@ -617,7 +617,7 @@ export default function EmployeesSearchPage() {
                   </PaginationItem>
                 </PaginationContent>
               </Pagination>
-              
+
               <div className="text-center text-xs text-gray-400 mt-2">
                 Page {page} of {data.meta.total_pages} • Showing {data.candidates.length} of {data.meta.total} candidates
               </div>
