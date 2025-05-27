@@ -329,7 +329,13 @@ export default function FactionPage() {
                                   statuses.add("Hospital");
                                 }
                                 if (member && member.status?.description) {
-                                  statuses.add(member.status.description);
+                                  // Group all traveling variants under "Traveling"
+                                  if (member.status.description.toLowerCase().includes('traveling') || 
+                                      member.status.description.toLowerCase().includes('returning')) {
+                                    statuses.add("Traveling");
+                                  } else {
+                                    statuses.add(member.status.description);
+                                  }
                                 }
                               });
 
@@ -476,9 +482,12 @@ export default function FactionPage() {
 
                             // Check against all possible filter criteria
                             if (statusFilter !== 'all') {
+                              const isTraveling = memberDescription.toLowerCase().includes('traveling') || 
+                                                memberDescription.toLowerCase().includes('returning');
                               const matchesStatus = memberStatus === statusFilter ||
                                                   (inHospital && statusFilter === "Hospital") ||
-                                                  memberDescription === statusFilter;
+                                                  memberDescription === statusFilter ||
+                                                  (isTraveling && statusFilter === "Traveling");
                               if (!matchesStatus) return false;
                             }
                             

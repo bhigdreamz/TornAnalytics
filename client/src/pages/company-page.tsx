@@ -127,10 +127,20 @@ export default function CompanyPage() {
     const lastActionStatus = employee.last_action && typeof employee.last_action === 'object' && 'status' in employee.last_action
       ? employee.last_action.status
       : employee.last_action;
+    
+    const employeeDescription = employee.status && typeof employee.status === 'object' && 'description' in employee.status
+      ? employee.status.description
+      : employee.status;
+
+    const isTraveling = employeeDescription && (
+      employeeDescription.toLowerCase().includes('traveling') || 
+      employeeDescription.toLowerCase().includes('returning')
+    );
 
     return (statusFilter === "all" || 
-            employee.status === statusFilter || 
-            lastActionStatus === statusFilter) &&
+            lastActionStatus === statusFilter || 
+            employeeDescription === statusFilter ||
+            (isTraveling && statusFilter === "Traveling")) &&
            (positionFilter === "all" || employee.position === positionFilter) &&
            (searchQuery === "" || 
             employee.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -488,12 +498,23 @@ export default function CompanyPage() {
                       </TableCell>
                       <TableCell>{employee.position}</TableCell>
                       <TableCell>
+                        {employee.last_action && typeof employee.last_action === 'object' && 'relative' in employee.last_action
+                          ? employee.last_action.relative
+                          : employee.last_action || "Unknown"
+                        }
+                      </TableCell>
+                      <TableCell>
                         {employee.last_action && typeof employee.last_action === 'object' && 'status' in employee.last_action
                           ? getStatusBadge(employee.last_action.status)
                           : getStatusBadge(employee.last_action)
                         }
                       </TableCell>
-                      <TableCell>{getStatusBadge(employee.status)}</TableCell>
+                      <TableCell>
+                        {employee.status && typeof employee.status === 'object' && 'description' in employee.status
+                          ? getStatusBadge(employee.status.description)
+                          : getStatusBadge(employee.status)
+                        }
+                      </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end">
                           <span className="mr-2">{employee.effectiveness || 0}%</span>
