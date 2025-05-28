@@ -685,20 +685,16 @@ export class MemStorage implements IStorage {
     const pageSize = 20;
     const startIndex = (page - 1) * pageSize;
 
-    // Generate mock company data if empty
-    if (this.companiesData.size === 0) {
-      this.generateMockCompanies();
-    }
-
+    // Use actual crawled company data - no mock data
     let companies = Array.from(this.companiesData.values()).filter(company => {
       // Company type filter
-      if (companyType !== "all" && company.type !== companyType) return false;
+      if (companyType !== "all" && company.company_type !== companyType) return false;
 
       // Rating filter
       if (company.rating < minRating || company.rating > maxRating) return false;
 
       // Employee count filter
-      if (company.employees.current < minEmployees || company.employees.current > maxEmployees) return false;
+      if (company.employees_hired < minEmployees || company.employees_hired > maxEmployees) return false;
 
       // Daily income filter
       if (company.daily_income < minDailyIncome) return false;
@@ -714,10 +710,12 @@ export class MemStorage implements IStorage {
       switch (sortBy) {
         case "rating-asc": return a.rating - b.rating;
         case "rating-desc": return b.rating - a.rating;
-        case "employees-asc": return a.employees.current - b.employees.current;
-        case "employees-desc": return b.employees.current - a.employees.current;
+        case "employees-asc": return a.employees_hired - b.employees_hired;
+        case "employees-desc": return b.employees_hired - a.employees_hired;
         case "income-asc": return a.daily_income - b.daily_income;
         case "income-desc": return b.daily_income - a.daily_income;
+        case "age-asc": return a.days_old - b.days_old;
+        case "age-desc": return b.days_old - a.days_old;
         default: return b.rating - a.rating;
       }
     });
@@ -731,9 +729,9 @@ export class MemStorage implements IStorage {
         total_pages: Math.ceil(companies.length / pageSize)
       },
       crawl_status: {
-        total_indexed: companies.length,
-        last_indexed: "2024-01-27 15:30:00",
-        crawl_complete_percentage: 85
+        total_indexed: this.companiesData.size,
+        last_indexed: new Date().toISOString(),
+        crawl_complete_percentage: 100
       }
     };
   }
@@ -754,10 +752,7 @@ export class MemStorage implements IStorage {
     const pageSize = 20;
     const startIndex = (page - 1) * pageSize;
 
-    // Generate mock faction data if empty
-    if (this.factionsData.size === 0) {
-      this.generateMockFactions();
-    }
+    // Use actual crawled faction data - no mock data
 
     let factions = Array.from(this.factionsData.values()).filter(faction => {
       // Respect filter
@@ -808,42 +803,51 @@ export class MemStorage implements IStorage {
     };
   }
 
-  private async generateMockCompanies() {
-    console.log("Note: Mock company generation disabled. Companies will be fetched from crawled data or API.");
-    // Mock data generation removed - using real crawled data instead
+  async storeCompanyData(companyId: number, companyData: any): Promise<void> {
+    // Store real company data from API
+    this.companiesData.set(companyId, {
+      id: companyId,
+      name: companyData.name,
+      company_type: companyData.company_type,
+      rating: companyData.rating || 0,
+      director: companyData.director,
+      employees_hired: companyData.employees_hired || 0,
+      employees_capacity: companyData.employees_capacity || 0,
+      daily_income: companyData.daily_income || 0,
+      daily_customers: companyData.daily_customers || 0,
+      weekly_income: companyData.weekly_income || 0,
+      weekly_customers: companyData.weekly_customers || 0,
+      days_old: companyData.days_old || 0,
+      indexed_at: new Date().toISOString()
+    });
+
+    console.log(`Stored company ${companyId} data successfully`);
+    return Promise.resolve();
   }
 
-  private generateMockFactions() {
-    const factionNames = [
-      "Elite Warriors", "Shadow Syndicate", "Iron Brotherhood", "Phoenix Rising",
-      "Dark Legion", "Storm Riders", "Blood Eagles", "Silver Wolves",
-      "Crimson Guard", "Night Hawks", "Steel Titans", "Fire Dragons",
-      "Thunder Bolts", "Ice Hunters", "Wind Walkers", "Earth Shakers"
-    ];
+  async storeFactionData(factionId: number, factionData: any): Promise<void> {
+    // Store real faction data from API
+    this.factionsData.set(factionId, {
+      id: factionId,
+      name: factionData.name,
+      tag: factionData.tag,
+      respect: factionData.respect || 0,
+      capacity: factionData.capacity || 0,
+      members: factionData.members || 0,
+      leader: factionData.leader,
+      territory: factionData.territory || 0,
+      best_chain: factionData.best_chain || 0,
+      age: factionData.age || 0,
+      weekly_stats: factionData.weekly_stats || {
+        attacks: 0,
+        defends: 0,
+        elo: 0
+      },
+      indexed_at: new Date().toISOString()
+    });
 
-    for (let i = 1; i <= 150; i++) {
-      const faction = {
-        id: 10000 + i,
-        name: factionNames[Math.floor(Math.random() * factionNames.length)],
-        tag: `F${i.toString().padStart(3, '0')}`,
-        respect: Math.floor(Math.random() * 5000000) + 100000,
-        capacity: Math.floor(Math.random() * 50) + 25,
-        members: Math.floor(Math.random() * 40) + 15,
-        leader: {
-          id: 3000000 + i,
-          name: `Leader${i}`
-        },
-        territory: Math.floor(Math.random() * 10),
-        best_chain: Math.floor(Math.random() * 5000) + 100,
-        age: Math.floor(Math.random() * 2000) + 100,
-        weekly_stats: {
-          attacks: Math.floor(Math.random() * 1000) + 50,
-          defends: Math.floor(Math.random() * 500) + 25,
-          elo: Math.floor(Math.random() * 2000) + 1000
-        }
-      };
-      this.factionsData.set(faction.id, faction);
-    }
+    console.log(`Stored faction ${factionId} data successfully`);
+    return Promise.resolve();
   }
 
   async getItems(params: ItemSearchParams): Promise<any> {

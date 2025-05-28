@@ -1,3 +1,4 @@
+
 /**
  * This service is responsible for getting and caching the company types from the Torn API.
  * It ensures we display accurate company type data based on the API rather than hardcoded values.
@@ -18,44 +19,43 @@ export class CompanyTypesService {
   private companyTypesCache: Record<number, CompanyTypeData> = {};
   private lastCacheUpdate: number = 0;
   private readonly CACHE_EXPIRY_MS = 24 * 60 * 60 * 1000; // 24 hours
-  
+
   private constructor(tornAPI: TornAPI) {
     this.tornAPI = tornAPI;
   }
-  
-  public static getInstance(tornAPI: TornAPI): CompanyTypesService {
+
+  static getInstance(tornAPI: TornAPI): CompanyTypesService {
     if (!CompanyTypesService.instance) {
       CompanyTypesService.instance = new CompanyTypesService(tornAPI);
     }
     return CompanyTypesService.instance;
   }
-  
+
   /**
-   * Get company type data from cache or fetch from API if needed
+   * Get all company types, using cache if available and fresh
    */
-  public async getCompanyType(typeId: number, apiKey: string): Promise<CompanyTypeData | null> {
+  async getAllCompanyTypes(apiKey: string): Promise<Record<string, { name: string }>> {
+    await this.ensureCacheIsFresh(apiKey);
+    
+    // Convert to the expected format for the frontend
+    const result: Record<string, { name: string }> = {};
+    Object.entries(this.companyTypesCache).forEach(([id, data]) => {
+      result[id] = { name: data.name };
+    });
+    
+    return result;
+  }
+
+  /**
+   * Get a specific company type by ID
+   */
+  async getCompanyType(typeId: number, apiKey: string): Promise<CompanyTypeData | null> {
     await this.ensureCacheIsFresh(apiKey);
     return this.companyTypesCache[typeId] || null;
   }
-  
+
   /**
-   * Get company type name only
-   */
-  public async getCompanyTypeName(typeId: number, apiKey: string): Promise<string> {
-    const companyType = await this.getCompanyType(typeId, apiKey);
-    return companyType ? companyType.name : "Unknown";
-  }
-  
-  /**
-   * Get all company types data
-   */
-  public async getAllCompanyTypes(apiKey: string): Promise<Record<number, CompanyTypeData>> {
-    await this.ensureCacheIsFresh(apiKey);
-    return this.companyTypesCache;
-  }
-  
-  /**
-   * Make sure the cache is fresh, fetching from API if needed
+   * Ensure the cache is fresh, refresh if needed
    */
   private async ensureCacheIsFresh(apiKey: string): Promise<void> {
     const now = Date.now();

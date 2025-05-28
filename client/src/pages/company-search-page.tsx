@@ -41,39 +41,15 @@ interface CompanySearchResponse {
   };
 }
 
-// Company types mapping
-const COMPANY_TYPES: Record<string, string> = {
-  "1": "Hair Salon",
-  "2": "Law Firm", 
-  "3": "Flower Shop",
-  "4": "Car Dealership",
-  "5": "Clothing Store",
-  "6": "Gun Shop",
-  "7": "Electronics Store",
-  "8": "Casino",
-  "9": "Television Network",
-  "10": "Adult Novelties",
-  "11": "Firework Stand",
-  "12": "Logistics",
-  "13": "Grocery Store",
-  "14": "Sweet Shop",
-  "15": "Gas Station",
-  "16": "Restaurant",
-  "17": "Nightclub",
-  "18": "Cyber Cafe",
-  "19": "Theater",
-  "20": "Property Broker"
-};
-
 export default function CompanySearchPage() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
-  const [companyType, setCompanyType] = useState("1");
+  const [companyType, setCompanyType] = useState("all");
   const [minRating, setMinRating] = useState(1);
   const [maxRating, setMaxRating] = useState(10);
   const [minEmployees, setMinEmployees] = useState(0);
-  const [maxEmployees, setMaxEmployees] = useState(10);
+  const [maxEmployees, setMaxEmployees] = useState(100);
   const [minDailyIncome, setMinDailyIncome] = useState(0);
   const [page, setPage] = useState(1);
   const [sortBy, setSortBy] = useState("rating-desc");
@@ -82,18 +58,12 @@ export default function CompanySearchPage() {
   const [showSortDropdown, setShowSortDropdown] = useState(false);
 
   // Query for company types from API
-  const { data: companyTypesData } = useQuery<Record<string, { name: string }>>({
+  const { data: companyTypesData, isLoading: typesLoading } = useQuery<Record<string, { name: string }>>({
     queryKey: ["/api/company-types"],
     enabled: !!user?.apiKey
   });
 
-  // Query for default company list
-  const { data: defaultData, isLoading: defaultLoading } = useQuery<CompanySearchResponse>({
-    queryKey: ["/api/companies/search", 1, "1", 1, 10, 0, 100, 0, "rating-desc", ""],
-    enabled: !!user?.apiKey && !hasSearched
-  });
-
-  // Query for filtered results
+  // Query for filtered results only (no default data)
   const { data: searchData, isLoading: searchLoading, isFetching, refetch } = useQuery<CompanySearchResponse>({
     queryKey: [
       "/api/companies/search", 
@@ -110,8 +80,8 @@ export default function CompanySearchPage() {
     enabled: !!user?.apiKey && hasSearched
   });
 
-  const data = hasSearched ? searchData : defaultData;
-  const isLoading = hasSearched ? searchLoading : defaultLoading;
+  const data = searchData;
+  const isLoading = searchLoading;
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -135,11 +105,11 @@ export default function CompanySearchPage() {
 
   const resetFilters = () => {
     setSearchQuery("");
-    setCompanyType("1");
+    setCompanyType("all");
     setMinRating(1);
     setMaxRating(10);
     setMinEmployees(0);
-    setMaxEmployees(10);
+    setMaxEmployees(100);
     setMinDailyIncome(0);
     setSortBy("rating-desc");
     setPage(1);
@@ -237,13 +207,27 @@ export default function CompanySearchPage() {
                       setShowSortDropdown(false);
                     }}
                   >
-                    <span>{companyTypesData?.[companyType]?.name || "Loading..."}</span>
+                    <span>
+                      {typesLoading ? "Loading..." : 
+                       companyType === "all" ? "All Types" : 
+                       companyTypesData?.[companyType]?.name || "Unknown"}
+                    </span>
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="m6 9 6 6 6-6"/>
                     </svg>
                   </div>
                   {showCompanyTypeDropdown && (
                     <div className="absolute top-full left-0 w-full bg-gray-800 border border-gray-600 rounded-md shadow-lg z-10 max-h-60 overflow-y-auto">
+                      <div 
+                        key="all"
+                        className="p-2 hover:bg-gray-700 cursor-pointer text-white"
+                        onClick={() => {
+                          setCompanyType("all");
+                          setShowCompanyTypeDropdown(false);
+                        }}
+                      >
+                        All Types
+                      </div>
                       {companyTypesData && Object.entries(companyTypesData).map(([id, data]) => (
                         <div 
                           key={id}
@@ -384,7 +368,7 @@ export default function CompanySearchPage() {
               <CardTitle className="flex items-center justify-between">
                 <span className="flex items-center gap-2">
                   <Building2 className="h-5 w-5" />
-                  {hasSearched ? "Search Results" : `${companyTypesData?.[companyType]?.name || "Company"} Companies`}
+                  {hasSearched ? "Search Results" : "Company Search"}
                 </span>
                 {data && (
                   <span className="text-sm text-gray-400">
@@ -394,10 +378,16 @@ export default function CompanySearchPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {isLoading ? (
+              {!hasSearched ? (
+                <div className="text-center py-8">
+                  <Building2 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">Search Companies</h3>
+                  <p className="text-gray-400">Configure your filters above and click "Search Companies" to find companies.</p>
+                </div>
+              ) : isLoading ? (
                 <div className="text-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
-                  <p className="text-gray-400 mt-2">Loading companies...</p>
+                  <p className="text-gray-400 mt-2">Searching companies...</p>
                 </div>
               ) : data?.companies.length === 0 ? (
                 <div className="text-center py-8">
@@ -414,7 +404,7 @@ export default function CompanySearchPage() {
                             <div className="flex items-center gap-3 mb-2">
                               <h3 className="text-lg font-semibold">{company.name}</h3>
                               <span className="text-xs bg-blue-600 text-white px-2 py-1 rounded">
-                                {COMPANY_TYPES[company.company_type as keyof typeof COMPANY_TYPES]}
+                                {companyTypesData?.[company.company_type]?.name || `Type ${company.company_type}`}
                               </span>
                               <div className="flex items-center gap-1">
                                 <Star className="h-4 w-4 text-yellow-500 fill-current" />
