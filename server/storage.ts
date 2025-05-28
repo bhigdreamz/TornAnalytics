@@ -136,7 +136,7 @@ export interface IStorage {
 
   // Company search
   searchCompanies(params: CompanySearchParams): Promise<any>;
-  
+
   // Faction search
   searchFactions(params: FactionsSearchParams): Promise<any>;
 
@@ -414,7 +414,7 @@ export class MemStorage implements IStorage {
 
   async trackUserActivity(playerId: number, companyId: number | null, factionId: number | null): Promise<void> {
     const now = Date.now();
-    
+
     if (companyId && companyId > 0) {
       const current = this.popularCompanies.get(companyId) || { count: 0, lastSeen: 0 };
       this.popularCompanies.set(companyId, {
@@ -422,7 +422,7 @@ export class MemStorage implements IStorage {
         lastSeen: now
       });
     }
-    
+
     if (factionId && factionId > 0) {
       const current = this.popularFactions.get(factionId) || { count: 0, lastSeen: 0 };
       this.popularFactions.set(factionId, {
@@ -807,53 +807,9 @@ export class MemStorage implements IStorage {
     };
   }
 
-  private generateMockCompanies() {
-    const companyTypeMapping = {
-      "1": "Grocery", "2": "Gas", "3": "Clothing", "4": "Electronics", "5": "Furniture",
-      "6": "Pharmacy", "7": "Restaurant", "8": "Car Dealership", "9": "Adult Novelties", "10": "Logistics",
-      "11": "Casino", "12": "Sweet Shop", "13": "Flower Shop", "14": "Law Firm", "15": "Gun Shop",
-      "16": "Mechanic", "17": "Zoo", "18": "Fireworks", "19": "Nightclub", "20": "Security",
-      "21": "Detective", "22": "Hair Salon", "23": "Music Store", "24": "Cruise Line", "25": "Oil Rig",
-      "26": "Television", "27": "Candle Shop", "28": "Farm", "29": "Newspaper", "30": "Mining",
-      "31": "Game Shop", "32": "Cyber Cafe", "33": "Clothing", "34": "Lingerie", "35": "Private Security",
-      "36": "Jail", "37": "Toy Shop", "38": "Ice Cream", "39": "Bakery", "40": "Book Store"
-    };
-
-    const companyNames = [
-      "Elite Solutions", "Global Corp", "City Center", "Golden Palace",
-      "Professional Services", "Tech Masters", "Premium Factory", "Quality Gardens",
-      "Advanced Systems", "Express Hub", "Health Plus", "Lucky Star",
-      "Prime Partners", "Digital Works", "Superior Factory", "Beautiful Gardens"
-    ];
-
-    // Generate companies for each type
-    for (let typeId = 1; typeId <= 40; typeId++) {
-      const typeKey = typeId.toString();
-      const typeName = companyTypeMapping[typeKey];
-      
-      // Generate 5 companies per type
-      for (let i = 1; i <= 5; i++) {
-        const company = {
-          id: 100000 + (typeId * 100) + i,
-          name: `${typeName} ${companyNames[Math.floor(Math.random() * companyNames.length)]} ${i}`,
-          type: typeKey, // Store as string ID
-          rating: Math.floor(Math.random() * 10) + 1,
-          employees: {
-            current: Math.floor(Math.random() * 50) + 5,
-            max: Math.floor(Math.random() * 20) + 50
-          },
-          director: {
-            id: 2000000 + (typeId * 100) + i,
-            name: `Director${typeId}_${i}`
-          },
-          daily_income: Math.floor(Math.random() * 1000000) + 50000,
-          weekly_income: Math.floor(Math.random() * 7000000) + 350000,
-          days_old: Math.floor(Math.random() * 1000) + 30,
-          value: Math.floor(Math.random() * 50000000) + 1000000
-        };
-        this.companiesData.set(company.id, company);
-      }
-    }
+  private async generateMockCompanies() {
+    console.log("Note: Mock company generation disabled. Companies will be fetched from crawled data or API.");
+    // Mock data generation removed - using real crawled data instead
   }
 
   private generateMockFactions() {

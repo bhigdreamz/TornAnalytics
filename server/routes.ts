@@ -74,6 +74,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Company Types - Requires authentication and API key
+  app.get("/api/company-types", isAuthenticated, async (req, res) => {
+    try {
+      const user = req.user as any;
+      if (!user.apiKey) {
+        return res.status(400).json({ message: "API key not configured. Please add your Torn API key in settings." });
+      }
+
+      // Use the CompanyTypesService to get all company types
+      const { CompanyTypesService } = await import("./services/companyTypes");
+      const companyTypesService = CompanyTypesService.getInstance(tornAPI);
+      const companyTypes = await companyTypesService.getAllCompanyTypes(user.apiKey);
+
+      res.json(companyTypes);
+    } catch (error) {
+      console.error("Error fetching company types:", error);
+      res.status(500).json({
+        message: error instanceof Error ? error.message : "Failed to fetch company types",
+      });
+    }
+  });
+
   // Company Tracking - Requires authentication and API key
   app.get("/api/company", isAuthenticated, async (req, res) => {
     try {

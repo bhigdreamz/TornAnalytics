@@ -42,47 +42,7 @@ interface CompanySearchResponse {
 }
 
 // Correct company types based on Torn RPG
-const COMPANY_TYPES = {
-  "1": "Adult Novelties",
-  "2": "Candy Shop", 
-  "3": "Candle Shop",
-  "4": "Clothing Store",
-  "5": "Cruise Line",
-  "6": "Detective Agency",
-  "7": "Fireworks Company",
-  "8": "Flower Shop",
-  "9": "Furniture Store",
-  "10": "Game Shop",
-  "11": "Gas Station",
-  "12": "Grocery Store",
-  "13": "Gun Shop",
-  "14": "Hair Salon",
-  "15": "Law Firm",
-  "16": "Mechanic Shop",
-  "17": "Music Store",
-  "18": "Nightclub",
-  "19": "Oil Rig",
-  "20": "Pharmacy",
-  "21": "Private Security Company",
-  "22": "Property Broker",
-  "23": "Restaurant",
-  "24": "Smoke Shop",
-  "25": "Sweet Shop",
-  "26": "Television Network",
-  "27": "Theater",
-  "28": "Toy Shop",
-  "29": "Zoo",
-  "30": "Mining Consortium",
-  "31": "Logistics Company",
-  "32": "Coffee Shop",
-  "33": "Farm",
-  "34": "Taxi Company",
-  "35": "IT Company",
-  "36": "Bakery",
-  "37": "Bank",
-  "38": "Sports Shop",
-  "39": "Car Dealership"
-};
+// Company types will be fetched from API
 
 export default function CompanySearchPage() {
   const { user } = useAuth();
@@ -99,6 +59,12 @@ export default function CompanySearchPage() {
   const [hasSearched, setHasSearched] = useState(false);
   const [showCompanyTypeDropdown, setShowCompanyTypeDropdown] = useState(false);
   const [showSortDropdown, setShowSortDropdown] = useState(false);
+
+  // Query for company types from API
+  const { data: companyTypesData } = useQuery<Record<string, { name: string }>>({
+    queryKey: ["/api/company-types"],
+    enabled: !!user?.apiKey
+  });
 
   // Query for default company list
   const { data: defaultData, isLoading: defaultLoading } = useQuery<CompanySearchResponse>({
@@ -250,14 +216,14 @@ export default function CompanySearchPage() {
                       setShowSortDropdown(false);
                     }}
                   >
-                    <span>{COMPANY_TYPES[companyType as keyof typeof COMPANY_TYPES]}</span>
+                    <span>{companyTypesData?.[companyType]?.name || "Loading..."}</span>
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="m6 9 6 6 6-6"/>
                     </svg>
                   </div>
                   {showCompanyTypeDropdown && (
                     <div className="absolute top-full left-0 w-full bg-gray-800 border border-gray-600 rounded-md shadow-lg z-10 max-h-60 overflow-y-auto">
-                      {Object.entries(COMPANY_TYPES).map(([id, name]) => (
+                      {companyTypesData && Object.entries(companyTypesData).map(([id, data]) => (
                         <div 
                           key={id}
                           className="p-2 hover:bg-gray-700 cursor-pointer text-white"
@@ -266,7 +232,7 @@ export default function CompanySearchPage() {
                             setShowCompanyTypeDropdown(false);
                           }}
                         >
-                          {name}
+                          {data.name}
                         </div>
                       ))}
                     </div>
@@ -397,7 +363,7 @@ export default function CompanySearchPage() {
               <CardTitle className="flex items-center justify-between">
                 <span className="flex items-center gap-2">
                   <Building2 className="h-5 w-5" />
-                  {hasSearched ? "Search Results" : `${COMPANY_TYPES[companyType as keyof typeof COMPANY_TYPES]} Companies`}
+                  {hasSearched ? "Search Results" : `${companyTypesData?.[companyType]?.name || "Company"} Companies`}
                 </span>
                 {data && (
                   <span className="text-sm text-gray-400">
