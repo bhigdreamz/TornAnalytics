@@ -75,7 +75,7 @@ export class CompanyTypesService {
   private async fetchCompanyTypes(apiKey: string): Promise<void> {
     try {
       console.log("Fetching company types from Torn API");
-      const response = await this.tornAPI.makeRequest("v2/torn?selections=companies", apiKey);
+      const response = await this.tornAPI.makeRequest("torn?selections=companies", apiKey);
       
       if (response?.companies) {
         // Refresh the cache
@@ -93,8 +93,9 @@ export class CompanyTypesService {
         
         this.lastCacheUpdate = Date.now();
         console.log(`Updated company types cache with ${Object.keys(this.companyTypesCache).length} types`);
+        console.log("Sample company types:", Object.entries(this.companyTypesCache).slice(0, 5).map(([id, data]) => `${id}: ${data.name}`));
       } else {
-        console.error("Failed to fetch company types - invalid response format");
+        console.error("Failed to fetch company types - invalid response format", response);
       }
     } catch (error) {
       console.error("Error fetching company types:", error);

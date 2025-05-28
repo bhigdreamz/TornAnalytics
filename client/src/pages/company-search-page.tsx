@@ -230,7 +230,9 @@ export default function CompanySearchPage() {
                       >
                         All Types
                       </div>
-                      {companyTypesData && Object.entries(companyTypesData).map(([id, data]) => (
+                      {companyTypesData && Object.entries(companyTypesData)
+                        .sort(([,a], [,b]) => a.name.localeCompare(b.name))
+                        .map(([id, data]) => (
                         <div 
                           key={id}
                           className="p-2 hover:bg-gray-700 cursor-pointer text-white"
