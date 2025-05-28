@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Building2, Users, DollarSign, Star, Search, RotateCcw } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
+import { useLocation } from "wouter";
 
 // Company types mapping
 const COMPANY_TYPES = {
@@ -86,12 +87,13 @@ interface CompanySearchResponse {
 
 export default function CompanySearchPage() {
   const { user } = useAuth();
+  const [, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
   const [companyType, setCompanyType] = useState("1"); // Start with Adult Novelties
   const [minRating, setMinRating] = useState(1);
   const [maxRating, setMaxRating] = useState(10);
   const [minEmployees, setMinEmployees] = useState(0);
-  const [maxEmployees, setMaxEmployees] = useState(100);
+  const [maxEmployees, setMaxEmployees] = useState(10);
   const [minDailyIncome, setMinDailyIncome] = useState(0);
   const [page, setPage] = useState(1);
   const [sortBy, setSortBy] = useState("rating-desc");
@@ -135,7 +137,7 @@ export default function CompanySearchPage() {
     setMinRating(1);
     setMaxRating(10);
     setMinEmployees(0);
-    setMaxEmployees(100);
+    setMaxEmployees(10);
     setMinDailyIncome(0);
     setSortBy("rating-desc");
     setPage(1);
@@ -173,6 +175,21 @@ export default function CompanySearchPage() {
       </Helmet>
       
       <MainLayout title="Company Search">
+        {/* Back to Dashboard Button */}
+        <div className="mb-6">
+          <Button 
+            variant="outline" 
+            onClick={() => setLocation('/')}
+            className="flex items-center gap-2"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="m12 19-7-7 7-7"/>
+              <path d="M19 12H5"/>
+            </svg>
+            Back to Dashboard
+          </Button>
+        </div>
+        
         <div className="space-y-6">
           {/* Search Filters */}
           <Card className="bg-game-dark border-gray-700">
@@ -277,6 +294,7 @@ export default function CompanySearchPage() {
                     id="maxEmployees"
                     type="number"
                     min="0"
+                    max="10"
                     value={maxEmployees}
                     onChange={(e) => setMaxEmployees(Number(e.target.value))}
                     className="bg-gray-800 border-gray-600"

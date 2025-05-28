@@ -9,13 +9,14 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Users, Crown, Shield, ExternalLink, Search, RotateCcw, TrendingUp } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
+import { useLocation } from "wouter";
 
 interface Faction {
   id: number;
   name: string;
   tag: string;
-  leader: string;
-  co_leader: string;
+  leader: string | { id: number; name: string };
+  co_leader: string | { id: number; name: string };
   respect: number;
   members: number;
   best_chain: number;
@@ -316,9 +317,9 @@ export default function FactionsSearchPage() {
                               </span>
                             </div>
                             <p className="text-gray-400 text-sm mb-3">
-                              Leader: <span className="text-white">{faction.leader}</span>
+                              Leader: <span className="text-white">{typeof faction.leader === 'object' && faction.leader ? faction.leader.name : faction.leader}</span>
                               {faction.co_leader && (
-                                <> • Co-Leader: <span className="text-white">{faction.co_leader}</span></>
+                                <> • Co-Leader: <span className="text-white">{typeof faction.co_leader === 'object' && faction.co_leader ? faction.co_leader.name : faction.co_leader}</span></>
                               )}
                               • Age: <span className="text-white">{faction.age} days</span>
                             </p>
