@@ -59,7 +59,7 @@ interface Company {
   company_type: string;
   rating: number;
   name: string;
-  director: string;
+  director: string | { id: number; name: string };
   employees_hired: number;
   employees_capacity: number;
   daily_income: number;
@@ -195,18 +195,42 @@ export default function CompanySearchPage() {
                   />
                 </div>
 
-                <div>
+                <div className="relative">
                   <Label htmlFor="companyType">Company Type</Label>
-                  <select
-                    id="companyType"
-                    value={companyType}
-                    onChange={(e) => setCompanyType(e.target.value)}
-                    className="w-full bg-gray-800 border border-gray-600 rounded-md px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  <div 
+                    className="w-full p-2 bg-gray-800 border border-gray-600 rounded-md flex items-center justify-between text-sm cursor-pointer hover:bg-gray-700"
+                    onClick={() => {
+                      const dropdown = document.getElementById("company-type-dropdown");
+                      if (dropdown) {
+                        dropdown.classList.toggle("hidden");
+                        
+                        if (!dropdown.classList.contains("hidden")) {
+                          dropdown.innerHTML = Object.entries(COMPANY_TYPES).map(([id, name]) => 
+                            `<div class="p-2 hover:bg-gray-700 cursor-pointer company-type-option text-white" data-value="${id}">${name}</div>`
+                          ).join('');
+                          
+                          dropdown.querySelectorAll('.company-type-option').forEach(option => {
+                            option.addEventListener("click", () => {
+                              const value = option.getAttribute("data-value");
+                              if (value) {
+                                setCompanyType(value);
+                                dropdown.classList.add("hidden");
+                              }
+                            });
+                          });
+                        }
+                      }
+                    }}
                   >
-                    {Object.entries(COMPANY_TYPES).map(([id, name]) => (
-                      <option key={id} value={id}>{name}</option>
-                    ))}
-                  </select>
+                    <span>{COMPANY_TYPES[companyType as keyof typeof COMPANY_TYPES]}</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="m6 9 6 6 6-6"/>
+                    </svg>
+                  </div>
+                  <div 
+                    id="company-type-dropdown" 
+                    className="hidden absolute top-full left-0 w-full bg-gray-800 border border-gray-600 rounded-md shadow-lg z-10 max-h-60 overflow-y-auto"
+                  ></div>
                 </div>
 
                 <div>
@@ -271,23 +295,62 @@ export default function CompanySearchPage() {
                   />
                 </div>
 
-                <div>
+                <div className="relative">
                   <Label htmlFor="sortBy">Sort By</Label>
-                  <select
-                    id="sortBy"
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value)}
-                    className="w-full bg-gray-800 border border-gray-600 rounded-md px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  <div 
+                    className="w-full p-2 bg-gray-800 border border-gray-600 rounded-md flex items-center justify-between text-sm cursor-pointer hover:bg-gray-700"
+                    onClick={() => {
+                      const dropdown = document.getElementById("sort-dropdown");
+                      if (dropdown) {
+                        dropdown.classList.toggle("hidden");
+                        
+                        if (!dropdown.classList.contains("hidden")) {
+                          const sortOptions = [
+                            { value: "rating-desc", label: "Rating (High to Low)" },
+                            { value: "rating-asc", label: "Rating (Low to High)" },
+                            { value: "employees-desc", label: "Employees (Most)" },
+                            { value: "employees-asc", label: "Employees (Least)" },
+                            { value: "income-desc", label: "Income (Highest)" },
+                            { value: "income-asc", label: "Income (Lowest)" },
+                            { value: "age-desc", label: "Age (Oldest)" },
+                            { value: "age-asc", label: "Age (Newest)" }
+                          ];
+                          
+                          dropdown.innerHTML = sortOptions.map(option => 
+                            `<div class="p-2 hover:bg-gray-700 cursor-pointer sort-option text-white" data-value="${option.value}">${option.label}</div>`
+                          ).join('');
+                          
+                          dropdown.querySelectorAll('.sort-option').forEach(option => {
+                            option.addEventListener("click", () => {
+                              const value = option.getAttribute("data-value");
+                              if (value) {
+                                setSortBy(value);
+                                dropdown.classList.add("hidden");
+                              }
+                            });
+                          });
+                        }
+                      }
+                    }}
                   >
-                    <option value="rating-desc">Rating (High to Low)</option>
-                    <option value="rating-asc">Rating (Low to High)</option>
-                    <option value="employees-desc">Employees (Most)</option>
-                    <option value="employees-asc">Employees (Least)</option>
-                    <option value="income-desc">Income (Highest)</option>
-                    <option value="income-asc">Income (Lowest)</option>
-                    <option value="age-desc">Age (Oldest)</option>
-                    <option value="age-asc">Age (Newest)</option>
-                  </select>
+                    <span>{
+                      sortBy === "rating-desc" ? "Rating (High to Low)" :
+                      sortBy === "rating-asc" ? "Rating (Low to High)" :
+                      sortBy === "employees-desc" ? "Employees (Most)" :
+                      sortBy === "employees-asc" ? "Employees (Least)" :
+                      sortBy === "income-desc" ? "Income (Highest)" :
+                      sortBy === "income-asc" ? "Income (Lowest)" :
+                      sortBy === "age-desc" ? "Age (Oldest)" :
+                      sortBy === "age-asc" ? "Age (Newest)" : "Rating (High to Low)"
+                    }</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="m6 9 6 6 6-6"/>
+                    </svg>
+                  </div>
+                  <div 
+                    id="sort-dropdown" 
+                    className="hidden absolute top-full left-0 w-full bg-gray-800 border border-gray-600 rounded-md shadow-lg z-10"
+                  ></div>
                 </div>
               </div>
 
@@ -348,7 +411,7 @@ export default function CompanySearchPage() {
                               </div>
                             </div>
                             <p className="text-gray-400 text-sm mb-3">
-                              Director: <span className="text-white">{company.director}</span> • 
+                              Director: <span className="text-white">{typeof company.director === 'object' && company.director ? company.director.name : company.director}</span> • 
                               Age: <span className="text-white">{company.days_old} days</span>
                             </p>
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
