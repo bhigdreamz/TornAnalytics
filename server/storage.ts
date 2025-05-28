@@ -744,8 +744,8 @@ export class MemStorage implements IStorage {
 
     // Use actual crawled company data - no mock data
     let companies = Array.from(this.companiesData.values()).filter(company => {
-      // Company type filter
-      if (companyType !== "all" && company.company_type !== companyType) return false;
+      // Company type filter - compare with company_type_name for string filtering
+      if (companyType !== "all" && company.company_type_name !== companyType) return false;
 
       // Rating filter
       if (company.rating < minRating || company.rating > maxRating) return false;
