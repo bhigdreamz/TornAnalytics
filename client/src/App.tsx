@@ -23,6 +23,8 @@ import BazaarCategoriesPage from "@/pages/bazaar-categories-page";
 import BazaarItemsPage from "@/pages/bazaar-items-page";
 import EmployeesSearchPage from "@/pages/employees-search-page";
 import FactionSearchPage from "@/pages/faction-search-page";
+import CompanySearchPage from "@/pages/company-search-page";
+import FactionsSearchPage from "@/pages/factions-search-page";
 import CrawlerStatusPage from "@/pages/crawler-status-page";
 import ItemDatabasePage from "@/pages/item-database-page";
 import SettingsPage from "@/pages/settings-page";
@@ -55,9 +57,7 @@ import SupplyPackCategoryPage from "@/pages/supply-pack-category-page";
 import BazaarListingsPage from "@/pages/bazaar-listings-page";
 import { ProtectedRoute } from "./lib/protected-route";
 
-// Placeholder components for new search pages
-const CompanySearchPage = () => <div>Company Search Page</div>;
-const FactionsSearchPage = () => <div>Factions Search Page</div>;
+
 
 function Router() {
   return (

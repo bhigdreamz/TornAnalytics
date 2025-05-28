@@ -1,52 +1,76 @@
-import { useState } from "react";
 import MainLayout from "@/components/layouts/MainLayout";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useAuth } from "@/hooks/use-auth";
 import { Helmet } from "react-helmet";
-import { useLocation } from "wouter";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Loader2, AlertCircle, Building, RefreshCw, Search } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { 
-  Pagination, 
-  PaginationContent, 
-  PaginationItem, 
-  PaginationLink, 
-  PaginationNext, 
-  PaginationPrevious 
-} from "@/components/ui/pagination";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Building2, Users, DollarSign, Star, Search, RotateCcw } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
 
-interface CompanyCandidate {
+// Company types mapping
+const COMPANY_TYPES = {
+  "1": "Adult Novelties",
+  "2": "Candy Shop", 
+  "3": "Candle Shop",
+  "4": "Clinic",
+  "5": "Cruise Line",
+  "6": "Detective Agency",
+  "7": "Fireworks Company",
+  "8": "Flower Shop",
+  "9": "Furniture Store",
+  "10": "Game Shop",
+  "11": "Gas Station",
+  "12": "Grocery Store",
+  "13": "Gun Shop",
+  "14": "Hair Salon",
+  "15": "Law Firm",
+  "16": "Mechanic Shop",
+  "17": "Music Store",
+  "18": "Nightclub",
+  "19": "Oil Rig",
+  "20": "Pharmacy",
+  "21": "Private Security Company",
+  "22": "Property Broker",
+  "23": "Restaurant",
+  "24": "Smoke Shop",
+  "25": "Sweet Shop",
+  "26": "Television Network",
+  "27": "Theater",
+  "28": "Toy Shop",
+  "29": "Clothing Store",
+  "30": "Zoo",
+  "31": "Mining Consortium",
+  "32": "Logistics Company",
+  "33": "Coffee Shop",
+  "34": "Farm",
+  "35": "Taxi Company",
+  "36": "IT Company",
+  "37": "Bakery",
+  "38": "Bank",
+  "39": "Sports Shop",
+  "40": "Car Dealership"
+};
+
+interface Company {
   id: number;
-  name: string;
-  type: string;
+  company_type: string;
   rating: number;
-  employees: {
-    current: number;
-    max: number;
-  };
-  director: {
-    id: number;
-    name: string;
-  };
+  name: string;
+  director: string;
+  employees_hired: number;
+  employees_capacity: number;
   daily_income: number;
+  daily_customers: number;
   weekly_income: number;
+  weekly_customers: number;
   days_old: number;
-  value: number;
 }
 
 interface CompanySearchResponse {
-  companies: CompanyCandidate[];
+  companies: Company[];
   meta: {
     total: number;
     page: number;
@@ -62,9 +86,8 @@ interface CompanySearchResponse {
 
 export default function CompanySearchPage() {
   const { user } = useAuth();
-  const [, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
-  const [companyType, setCompanyType] = useState("1");
+  const [companyType, setCompanyType] = useState("1"); // Start with Adult Novelties
   const [minRating, setMinRating] = useState(1);
   const [maxRating, setMaxRating] = useState(10);
   const [minEmployees, setMinEmployees] = useState(0);
@@ -74,22 +97,22 @@ export default function CompanySearchPage() {
   const [sortBy, setSortBy] = useState("rating-desc");
   const [hasSearched, setHasSearched] = useState(false);
 
-  // Query for default company list (Adult Novelties - type 1)
+  // Query for default company list (Adult Novelties)
   const { data: defaultData, isLoading: defaultLoading } = useQuery<CompanySearchResponse>({
     queryKey: ["/api/companies/search", 1, "1", 1, 10, 0, 100, 0, "rating-desc", ""],
     enabled: !!user?.apiKey && !hasSearched
   });
 
-  // Query for filtered search results
-  const { data: searchData, isLoading: searchLoading, isError, refetch, isFetching } = useQuery<CompanySearchResponse>({
+  // Query for filtered results
+  const { data: searchData, isLoading: searchLoading, isFetching, refetch } = useQuery<CompanySearchResponse>({
     queryKey: [
       "/api/companies/search", 
       page, 
-      companyType,
-      minRating,
-      maxRating,
-      minEmployees,
-      maxEmployees,
+      companyType, 
+      minRating, 
+      maxRating, 
+      minEmployees, 
+      maxEmployees, 
       minDailyIncome,
       sortBy, 
       searchQuery
@@ -97,41 +120,45 @@ export default function CompanySearchPage() {
     enabled: !!user?.apiKey && hasSearched
   });
 
-  // Use appropriate data based on search state
   const data = hasSearched ? searchData : defaultData;
   const isLoading = hasSearched ? searchLoading : defaultLoading;
 
-  // Handle search
   const handleSearch = () => {
     setPage(1);
     setHasSearched(true);
+    refetch();
   };
 
-  // Format currency for display
+  const resetFilters = () => {
+    setSearchQuery("");
+    setCompanyType("1");
+    setMinRating(1);
+    setMaxRating(10);
+    setMinEmployees(0);
+    setMaxEmployees(100);
+    setMinDailyIncome(0);
+    setSortBy("rating-desc");
+    setPage(1);
+    setHasSearched(false);
+  };
+
   const formatCurrency = (amount: number) => {
-    if (amount >= 1000000000) return `$${(amount / 1000000000).toFixed(1)}B`;
-    if (amount >= 1000000) return `$${(amount / 1000000).toFixed(1)}M`;
-    if (amount >= 1000) return `$${(amount / 1000).toFixed(1)}K`;
-    return `$${amount.toString()}`;
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount);
   };
 
   if (!user?.apiKey) {
     return (
       <MainLayout title="Company Search">
-        <Helmet>
-          <title>Company Search | Byte-Core Vault</title>
-          <meta name="description" content="Search for companies in Torn RPG with Byte-Core Vault's powerful search tools." />
-        </Helmet>
-        <Card className="border-gray-700 bg-game-dark shadow-game">
-          <CardContent className="p-6 flex flex-col items-center justify-center text-center">
-            <AlertCircle className="h-12 w-12 text-red-500 mb-4" />
-            <h3 className="text-xl font-semibold mb-2">API Key Required</h3>
-            <p className="text-gray-400 max-w-md mb-4">
-              Please add your Torn API key in settings to search for companies.
-            </p>
-            <Button variant="outline">
-              Add API Key
-            </Button>
+        <Card className="bg-game-dark border-gray-700">
+          <CardContent className="p-6 text-center">
+            <Building2 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold mb-2">API Key Required</h3>
+            <p className="text-gray-400">Please add your Torn API key in settings to search companies.</p>
           </CardContent>
         </Card>
       </MainLayout>
@@ -139,419 +166,259 @@ export default function CompanySearchPage() {
   }
 
   return (
-    <MainLayout title="Company Search">
+    <>
       <Helmet>
         <title>Company Search | Byte-Core Vault</title>
-        <meta name="description" content="Search for companies in Torn RPG with Byte-Core Vault's powerful search tools." />
+        <meta name="description" content="Search and discover companies in Torn with advanced filtering options." />
       </Helmet>
-
-      <Card className="border-gray-700 bg-game-dark shadow-game mb-6">
-        <CardHeader>
-          <div className="flex justify-between items-center">
-            <div>
-              <CardTitle className="flex items-center">
-                <Building className="h-5 w-5 mr-2" />
-                Find Companies
+      
+      <MainLayout title="Company Search">
+        <div className="space-y-6">
+          {/* Search Filters */}
+          <Card className="bg-game-dark border-gray-700">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Search className="h-5 w-5" />
+                Search Filters
               </CardTitle>
-              <CardDescription className="mt-1">
-                Last Updated: {data?.crawl_status?.last_indexed || "Never"}
-              </CardDescription>
-            </div>
-          </div>
-        </CardHeader>
-
-        <CardContent>
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Input
-                  placeholder="Search by company name..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="bg-game-panel border-gray-700"
-                />
-              </div>
-
-              <div>
-                <div className="relative">
-                  <div 
-                    className="w-full p-2 bg-game-panel border border-gray-700 rounded-md flex items-center justify-between text-sm cursor-pointer hover:bg-gray-800"
-                    onClick={() => {
-                      const dropdown = document.getElementById("company-type-dropdown");
-                      if (dropdown) {
-                        dropdown.classList.toggle("hidden");
-                      }
-                    }}
-                  >
-                    <span>
-                      {companyType === "all" ? "All Types" : 
-                       companyType === "1" ? "Grocery" :
-                       companyType === "2" ? "Gas" :
-                       companyType === "3" ? "Clothing" :
-                       companyType === "4" ? "Electronics" :
-                       companyType === "5" ? "Furniture" :
-                       companyType === "6" ? "Pharmacy" :
-                       companyType === "7" ? "Restaurant" :
-                       companyType === "8" ? "Car Dealership" :
-                       companyType === "9" ? "Adult Novelties" :
-                       companyType === "10" ? "Logistics" :
-                       companyType === "11" ? "Casino" :
-                       companyType === "12" ? "Sweet Shop" :
-                       companyType === "13" ? "Flower Shop" :
-                       companyType === "14" ? "Law Firm" :
-                       companyType === "15" ? "Gun Shop" :
-                       companyType === "16" ? "Mechanic" :
-                       companyType === "17" ? "Zoo" :
-                       companyType === "18" ? "Fireworks" :
-                       companyType === "19" ? "Nightclub" :
-                       companyType === "20" ? "Security" :
-                       companyType === "21" ? "Detective" :
-                       companyType === "22" ? "Hair Salon" :
-                       companyType === "23" ? "Music Store" :
-                       companyType === "24" ? "Cruise Line" :
-                       companyType === "25" ? "Oil Rig" :
-                       companyType === "26" ? "Television" :
-                       companyType === "27" ? "Candle Shop" :
-                       companyType === "28" ? "Farm" :
-                       companyType === "29" ? "Newspaper" :
-                       companyType === "30" ? "Mining" :
-                       companyType === "31" ? "Game Shop" :
-                       companyType === "32" ? "Cyber Cafe" :
-                       companyType === "33" ? "Clothing" :
-                       companyType === "34" ? "Lingerie" :
-                       companyType === "35" ? "Private Security" :
-                       companyType === "36" ? "Jail" :
-                       companyType === "37" ? "Toy Shop" :
-                       companyType === "38" ? "Ice Cream" :
-                       companyType === "39" ? "Bakery" :
-                       companyType === "40" ? "Book Store" : "Unknown"}
-                    </span>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="m6 9 6 6 6-6"/>
-                    </svg>
-                  </div>
-
-                  <div id="company-type-dropdown" className="absolute z-10 w-full mt-1 bg-background border border-border rounded-md shadow-lg hidden max-h-60 overflow-y-auto">
-                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("all"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>All Types</div>
-                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("1"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Grocery</div>
-                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("2"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Gas</div>
-                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("3"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Clothing</div>
-                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("4"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Electronics</div>
-                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("5"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Furniture</div>
-                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("6"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Pharmacy</div>
-                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("7"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Restaurant</div>
-                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("8"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Car Dealership</div>
-                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("9"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Adult Novelties</div>
-                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("10"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Logistics</div>
-                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("11"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Casino</div>
-                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("12"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Sweet Shop</div>
-                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("13"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Flower Shop</div>
-                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("14"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Law Firm</div>
-                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("15"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Gun Shop</div>
-                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("16"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Mechanic</div>
-                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("17"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Zoo</div>
-                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("18"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Fireworks</div>
-                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("19"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Nightclub</div>
-                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("20"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Security</div>
-                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("21"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Detective</div>
-                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("22"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Hair Salon</div>
-                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("23"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Music Store</div>
-                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("24"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Cruise Line</div>
-                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("25"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Oil Rig</div>
-                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("26"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Television</div>
-                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("27"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Candle Shop</div>
-                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("28"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Farm</div>
-                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("29"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Newspaper</div>
-                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("30"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Mining</div>
-                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("31"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Game Shop</div>
-                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("32"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Cyber Cafe</div>
-                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("33"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Clothing</div>
-                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("34"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Lingerie</div>
-                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("35"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Private Security</div>
-                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("36"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Jail</div>
-                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("37"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Toy Shop</div>
-                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("38"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Ice Cream</div>
-                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("39"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Bakery</div>
-                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("40"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Book Store</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <div className="flex justify-between items-center mb-1">
-                  <label className="text-sm text-gray-400">Rating Range:</label>
-                  <span className="text-sm font-medium">{minRating} - {maxRating}</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Input 
-                    type="number"
-                    min={1}
-                    max={maxRating}
-                    value={minRating}
-                    onChange={(e) => {
-                      const value = parseInt(e.target.value);
-                      if (value && value >= 1 && value <= maxRating) {
-                        setMinRating(value);
-                      }
-                    }}
-                    className="bg-game-panel border-gray-700 h-8 w-16 text-center"
-                    placeholder="Min"
-                  />
-                  <span className="text-gray-400">to</span>
-                  <Input 
-                    type="number"
-                    min={minRating}
-                    max={10}
-                    value={maxRating}
-                    onChange={(e) => {
-                      const value = parseInt(e.target.value);
-                      if (value && value >= minRating && value <= 10) {
-                        setMaxRating(value);
-                      }
-                    }}
-                    className="bg-game-panel border-gray-700 h-8 w-16 text-center"
-                    placeholder="Max"
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div>
+                  <Label htmlFor="search">Company Name</Label>
+                  <Input
+                    id="search"
+                    placeholder="Search by name..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="bg-gray-800 border-gray-600"
                   />
                 </div>
-              </div>
 
-              <div>
-                <div className="flex justify-between items-center mb-1">
-                  <label className="text-sm text-gray-400">Employee Range:</label>
-                  <span className="text-sm font-medium">{minEmployees} - {maxEmployees}</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Input 
-                    type="number"
-                    min={0}
-                    max={maxEmployees}
-                    value={minEmployees}
-                    onChange={(e) => {
-                      const value = parseInt(e.target.value);
-                      if (value >= 0 && value <= maxEmployees) {
-                        setMinEmployees(value);
-                      }
-                    }}
-                    className="bg-game-panel border-gray-700 h-8 w-16 text-center"
-                    placeholder="Min"
-                  />
-                  <span className="text-gray-400">to</span>
-                  <Input 
-                    type="number"
-                    min={minEmployees}
-                    max={100}
-                    value={maxEmployees}
-                    onChange={(e) => {
-                      const value = parseInt(e.target.value);
-                      if (value >= minEmployees && value <= 100) {
-                        setMaxEmployees(value);
-                      }
-                    }}
-                    className="bg-game-panel border-gray-700 h-8 w-16 text-center"
-                    placeholder="Max"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <div className="flex justify-between items-center mb-1">
-                <label className="text-sm text-gray-400">Minimum Daily Income:</label>
-              </div>
-              <Input 
-                type="number"
-                min={0}
-                value={minDailyIncome}
-                onChange={(e) => {
-                  const value = parseInt(e.target.value);
-                  if (value >= 0) {
-                    setMinDailyIncome(value);
-                  }
-                }}
-                className="bg-game-panel border-gray-700"
-                placeholder="Minimum daily income"
-              />
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Button 
-                onClick={handleSearch}
-                disabled={isLoading}
-                className="flex-1 bg-blue-600 hover:bg-blue-700"
-              >
-                {isLoading ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <Search className="mr-2 h-4 w-4" />
-                )}
-                Search Companies
-              </Button>
-
-              <Button 
-                variant="outline" 
-                onClick={() => setLocation('/')}
-                className="flex-1 sm:flex-none"
-              >
-                Back to Dashboard
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Results Section */}
-      {hasSearched && (
-        <Card className="border-gray-700 bg-game-dark shadow-game">
-          <CardHeader>
-            <div className="flex justify-between items-center">
-              <CardTitle>{hasSearched ? "Company Search Results" : "Adult Novelties Companies"}</CardTitle>
-              {data && (
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => refetch()}
-                  disabled={isFetching}
-                >
-                  {isFetching ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  ) : (
-                    <RefreshCw className="mr-2 h-4 w-4" />
-                  )}
-                  Refresh
-                </Button>
-              )}
-            </div>
-          </CardHeader>
-
-          <CardContent>
-            {isLoading ? (
-              <div className="flex justify-center items-center h-40">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                <span className="ml-2 text-lg">Searching companies...</span>
-              </div>
-            ) : isError ? (
-              <div className="flex flex-col items-center justify-center py-12 text-center">
-                <AlertCircle className="h-12 w-12 text-red-500 mb-4" />
-                <h3 className="text-lg font-medium text-gray-300 mb-2">Search Failed</h3>
-                <p className="text-gray-400 max-w-md mb-4">
-                  Failed to search companies. Please try again.
-                </p>
-                <Button variant="outline" onClick={() => refetch()}>
-                  Try Again
-                </Button>
-              </div>
-            ) : data && data.companies.length > 0 ? (
-              <>
-                <div className="rounded-md border border-gray-700">
-                  <Table>
-                    <TableHeader>
-                      <TableRow className="hover:bg-transparent border-gray-700">
-                        <TableHead className="w-[220px]">Company</TableHead>
-                        <TableHead className="text-center">Type</TableHead>
-                        <TableHead className="text-center">Rating</TableHead>
-                        <TableHead className="text-center">Employees</TableHead>
-                        <TableHead>Director</TableHead>
-                        <TableHead className="text-right">Income</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {data.companies.map((company) => (
-                        <TableRow key={company.id} className="border-gray-700">
-                          <TableCell className="font-medium">
-                            <div className="flex items-center">
-                              <div className="w-8 h-8 rounded-full bg-primary bg-opacity-30 flex items-center justify-center mr-2">
-                                <Building className="text-primary-light h-4 w-4" />
-                              </div>
-                              <div>
-                                <div>{company.name}</div>
-                                <div className="text-xs text-gray-400">#{company.id}</div>
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <Badge variant="outline" className="bg-blue-500/10 text-blue-400 border-blue-500/30">
-                              {company.type}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <div className="flex items-center justify-center">
-                              {Array.from({ length: company.rating }).map((_, i) => (
-                                <span key={i} className="text-yellow-400">★</span>
-                              ))}
-                              {Array.from({ length: 10 - company.rating }).map((_, i) => (
-                                <span key={i} className="text-gray-600">★</span>
-                              ))}
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <span className="text-sm">
-                              {company.employees.current}/{company.employees.max}
-                            </span>
-                          </TableCell>
-                          <TableCell>
-                            <div className="text-sm">
-                              <div className="font-medium">{company.director.name}</div>
-                              <div className="text-xs text-gray-400">ID: #{company.director.id}</div>
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <div className="text-sm">
-                              <div className="font-medium">{formatCurrency(company.daily_income)}/day</div>
-                              <div className="text-xs text-gray-400">{formatCurrency(company.weekly_income)}/week</div>
-                            </div>
-                          </TableCell>
-                        </TableRow>
+                <div>
+                  <Label htmlFor="companyType">Company Type</Label>
+                  <Select value={companyType} onValueChange={setCompanyType}>
+                    <SelectTrigger className="bg-gray-800 border-gray-600">
+                      <SelectValue placeholder="Select type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(COMPANY_TYPES).map(([id, name]) => (
+                        <SelectItem key={id} value={id}>{name}</SelectItem>
                       ))}
-                    </TableBody>
-                  </Table>
+                    </SelectContent>
+                  </Select>
                 </div>
 
-                {data.meta.total_pages > 1 && (
-                  <div className="mt-6">
-                    <Pagination>
-                      <PaginationContent>
-                        <PaginationItem>
-                          <PaginationPrevious 
-                            onClick={() => setPage(p => Math.max(1, p - 1))} 
-                            disabled={page === 1}
-                            className={page === 1 ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
-                          />
-                        </PaginationItem>
+                <div>
+                  <Label htmlFor="minRating">Min Rating</Label>
+                  <Input
+                    id="minRating"
+                    type="number"
+                    min="1"
+                    max="10"
+                    value={minRating}
+                    onChange={(e) => setMinRating(Number(e.target.value))}
+                    className="bg-gray-800 border-gray-600"
+                  />
+                </div>
 
-                        <PaginationItem>
-                          <PaginationLink isActive>{page}</PaginationLink>
-                        </PaginationItem>
+                <div>
+                  <Label htmlFor="maxRating">Max Rating</Label>
+                  <Input
+                    id="maxRating"
+                    type="number"
+                    min="1"
+                    max="10"
+                    value={maxRating}
+                    onChange={(e) => setMaxRating(Number(e.target.value))}
+                    className="bg-gray-800 border-gray-600"
+                  />
+                </div>
 
-                        <PaginationItem>
-                          <PaginationNext 
-                            onClick={() => setPage(p => Math.min(data.meta.total_pages, p + 1))} 
-                            disabled={page === data.meta.total_pages}
-                            className={page === data.meta.total_pages ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
-                          />
-                        </PaginationItem>
-                      </PaginationContent>
-                    </Pagination>
+                <div>
+                  <Label htmlFor="minEmployees">Min Employees</Label>
+                  <Input
+                    id="minEmployees"
+                    type="number"
+                    min="0"
+                    value={minEmployees}
+                    onChange={(e) => setMinEmployees(Number(e.target.value))}
+                    className="bg-gray-800 border-gray-600"
+                  />
+                </div>
 
-                    <div className="text-center text-xs text-gray-400 mt-2">
-                      Page {page} of {data.meta.total_pages} • Showing {data.companies.length} of {data.meta.total} companies
-                    </div>
-                  </div>
-                )}
-              </>
-            ) : (
-              <div className="flex flex-col items-center justify-center py-12 text-center">
-                <Building className="h-12 w-12 text-gray-500 mb-4" />
-                <h3 className="text-lg font-medium text-gray-300 mb-2">No Companies Found</h3>
-                <p className="text-gray-400 max-w-md mb-4">
-                  No companies match your search criteria. Try adjusting your filters.
-                </p>
+                <div>
+                  <Label htmlFor="maxEmployees">Max Employees</Label>
+                  <Input
+                    id="maxEmployees"
+                    type="number"
+                    min="0"
+                    value={maxEmployees}
+                    onChange={(e) => setMaxEmployees(Number(e.target.value))}
+                    className="bg-gray-800 border-gray-600"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="minIncome">Min Daily Income</Label>
+                  <Input
+                    id="minIncome"
+                    type="number"
+                    min="0"
+                    value={minDailyIncome}
+                    onChange={(e) => setMinDailyIncome(Number(e.target.value))}
+                    className="bg-gray-800 border-gray-600"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="sortBy">Sort By</Label>
+                  <Select value={sortBy} onValueChange={setSortBy}>
+                    <SelectTrigger className="bg-gray-800 border-gray-600">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="rating-desc">Rating (High to Low)</SelectItem>
+                      <SelectItem value="rating-asc">Rating (Low to High)</SelectItem>
+                      <SelectItem value="employees-desc">Employees (Most)</SelectItem>
+                      <SelectItem value="employees-asc">Employees (Least)</SelectItem>
+                      <SelectItem value="income-desc">Income (Highest)</SelectItem>
+                      <SelectItem value="income-asc">Income (Lowest)</SelectItem>
+                      <SelectItem value="age-desc">Age (Oldest)</SelectItem>
+                      <SelectItem value="age-asc">Age (Newest)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
-    </MainLayout>
+
+              <div className="flex gap-2">
+                <Button onClick={handleSearch} disabled={isFetching} className="bg-blue-600 hover:bg-blue-700">
+                  <Search className="h-4 w-4 mr-2" />
+                  {isFetching ? "Searching..." : "Search Companies"}
+                </Button>
+                <Button onClick={resetFilters} variant="outline" className="border-gray-600">
+                  <RotateCcw className="h-4 w-4 mr-2" />
+                  Reset
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Results */}
+          <Card className="bg-game-dark border-gray-700">
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span className="flex items-center gap-2">
+                  <Building2 className="h-5 w-5" />
+                  {hasSearched ? "Search Results" : `${COMPANY_TYPES[companyType as keyof typeof COMPANY_TYPES]} Companies`}
+                </span>
+                {data && (
+                  <span className="text-sm text-gray-400">
+                    {data.meta.total} companies found
+                  </span>
+                )}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {isLoading ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
+                  <p className="text-gray-400 mt-2">Loading companies...</p>
+                </div>
+              ) : data?.companies.length === 0 ? (
+                <div className="text-center py-8">
+                  <Building2 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-400">No companies found matching your criteria.</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {data?.companies.map((company) => (
+                    <Card key={company.id} className="bg-gray-800 border-gray-600">
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-3 mb-2">
+                              <h3 className="text-lg font-semibold">{company.name}</h3>
+                              <span className="text-xs bg-blue-600 text-white px-2 py-1 rounded">
+                                {COMPANY_TYPES[company.company_type as keyof typeof COMPANY_TYPES]}
+                              </span>
+                              <div className="flex items-center gap-1">
+                                <Star className="h-4 w-4 text-yellow-500 fill-current" />
+                                <span className="text-sm font-medium">{company.rating}/10</span>
+                              </div>
+                            </div>
+                            <p className="text-gray-400 text-sm mb-3">
+                              Director: <span className="text-white">{company.director}</span> • 
+                              Age: <span className="text-white">{company.days_old} days</span>
+                            </p>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                              <div className="flex items-center gap-2">
+                                <Users className="h-4 w-4 text-blue-400" />
+                                <span>{company.employees_hired}/{company.employees_capacity} employees</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <DollarSign className="h-4 w-4 text-green-400" />
+                                <span>{formatCurrency(company.daily_income)}/day</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <DollarSign className="h-4 w-4 text-green-400" />
+                                <span>{formatCurrency(company.weekly_income)}/week</span>
+                              </div>
+                              <div className="text-gray-400">
+                                {company.daily_customers} daily customers
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+
+                  {/* Pagination */}
+                  {data && data.meta.total_pages > 1 && (
+                    <div className="flex justify-center gap-2 pt-4">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setPage(Math.max(1, page - 1))}
+                        disabled={page === 1}
+                        className="border-gray-600"
+                      >
+                        Previous
+                      </Button>
+                      <span className="flex items-center px-3 text-sm text-gray-400">
+                        Page {page} of {data.meta.total_pages}
+                      </span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setPage(Math.min(data.meta.total_pages, page + 1))}
+                        disabled={page === data.meta.total_pages}
+                        className="border-gray-600"
+                      >
+                        Next
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Crawl Status */}
+          {data?.crawl_status && (
+            <Card className="bg-game-dark border-gray-700">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between text-sm text-gray-400">
+                  <span>Data indexed: {data.crawl_status.total_indexed.toLocaleString()} companies</span>
+                  <span>Last updated: {data.crawl_status.last_indexed}</span>
+                  <span>{data.crawl_status.crawl_complete_percentage}% complete</span>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </MainLayout>
+    </>
   );
 }

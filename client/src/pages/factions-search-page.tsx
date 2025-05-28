@@ -1,55 +1,32 @@
-
-import { useState } from "react";
 import MainLayout from "@/components/layouts/MainLayout";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useAuth } from "@/hooks/use-auth";
 import { Helmet } from "react-helmet";
-import { useLocation } from "wouter";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Loader2, AlertCircle, Shield, RefreshCw, Search } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { 
-  Pagination, 
-  PaginationContent, 
-  PaginationItem, 
-  PaginationLink, 
-  PaginationNext, 
-  PaginationPrevious 
-} from "@/components/ui/pagination";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Users, Crown, Shield, ExternalLink, Search, RotateCcw, TrendingUp } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
 
-interface FactionCandidate {
+interface Faction {
   id: number;
   name: string;
   tag: string;
+  leader: string;
+  co_leader: string;
   respect: number;
-  capacity: number;
   members: number;
-  leader: {
-    id: number;
-    name: string;
-  };
-  territory: number;
   best_chain: number;
   age: number;
-  weekly_stats: {
-    attacks: number;
-    defends: number;
-    elo: number;
-  };
+  capacity: number;
+  territory_wars: number;
+  application_status: "Open" | "Closed" | "Tag to Apply";
 }
 
 interface FactionSearchResponse {
-  factions: FactionCandidate[];
+  factions: Faction[];
   meta: {
     total: number;
     page: number;
@@ -65,7 +42,6 @@ interface FactionSearchResponse {
 
 export default function FactionsSearchPage() {
   const { user } = useAuth();
-  const [, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
   const [minRespect, setMinRespect] = useState(0);
   const [maxRespect, setMaxRespect] = useState(10000000);
@@ -84,14 +60,14 @@ export default function FactionsSearchPage() {
   });
 
   // Query for filtered search results
-  const { data: searchData, isLoading: searchLoading, isError, refetch, isFetching } = useQuery<FactionSearchResponse>({
+  const { data: searchData, isLoading: searchLoading, refetch, isFetching } = useQuery<FactionSearchResponse>({
     queryKey: [
       "/api/factions/search", 
       page, 
-      minRespect,
-      maxRespect,
-      minMembers,
-      maxMembers,
+      minRespect, 
+      maxRespect, 
+      minMembers, 
+      maxMembers, 
       minBestChain,
       minAge,
       sortBy, 
@@ -100,402 +76,340 @@ export default function FactionsSearchPage() {
     enabled: !!user?.apiKey && hasSearched
   });
 
-  // Use appropriate data based on search state
   const data = hasSearched ? searchData : defaultData;
   const isLoading = hasSearched ? searchLoading : defaultLoading;
-  
-  // Handle search
+
   const handleSearch = () => {
     setPage(1);
     setHasSearched(true);
+    refetch();
   };
-  
-  // Format numbers for display
+
+  const resetFilters = () => {
+    setSearchQuery("");
+    setMinRespect(0);
+    setMaxRespect(10000000);
+    setMinMembers(1);
+    setMaxMembers(100);
+    setMinBestChain(0);
+    setMinAge(0);
+    setSortBy("respect-desc");
+    setPage(1);
+    setHasSearched(false);
+  };
+
   const formatNumber = (num: number) => {
-    if (num >= 1000000000) return `${(num / 1000000000).toFixed(1)}B`;
-    if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
-    if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
+    if (num >= 1000000) {
+      return (num / 1000000).toFixed(1) + 'M';
+    } else if (num >= 1000) {
+      return (num / 1000).toFixed(1) + 'K';
+    }
     return num.toString();
   };
-  
+
+  const getApplicationUrl = (factionId: number) => {
+    return `https://www.torn.com/factions.php?step=your#/p=main&tab=info&ID=${factionId}`;
+  };
+
+  const getApplicationStatusColor = (status: string) => {
+    switch (status) {
+      case "Open": return "text-green-400 bg-green-400/20";
+      case "Closed": return "text-red-400 bg-red-400/20";
+      case "Tag to Apply": return "text-yellow-400 bg-yellow-400/20";
+      default: return "text-gray-400 bg-gray-400/20";
+    }
+  };
+
   if (!user?.apiKey) {
     return (
       <MainLayout title="Faction Search">
-        <Helmet>
-          <title>Faction Search | Byte-Core Vault</title>
-          <meta name="description" content="Search for factions in Torn RPG with Byte-Core Vault's powerful search tools." />
-        </Helmet>
-        <Card className="border-gray-700 bg-game-dark shadow-game">
-          <CardContent className="p-6 flex flex-col items-center justify-center text-center">
-            <AlertCircle className="h-12 w-12 text-red-500 mb-4" />
-            <h3 className="text-xl font-semibold mb-2">API Key Required</h3>
-            <p className="text-gray-400 max-w-md mb-4">
-              Please add your Torn API key in settings to search for factions.
-            </p>
-            <Button variant="outline">
-              Add API Key
-            </Button>
+        <Card className="bg-game-dark border-gray-700">
+          <CardContent className="p-6 text-center">
+            <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold mb-2">API Key Required</h3>
+            <p className="text-gray-400">Please add your Torn API key in settings to search factions.</p>
           </CardContent>
         </Card>
       </MainLayout>
     );
   }
-  
+
   return (
-    <MainLayout title="Faction Search">
+    <>
       <Helmet>
         <title>Faction Search | Byte-Core Vault</title>
-        <meta name="description" content="Search for factions in Torn RPG with Byte-Core Vault's powerful search tools." />
+        <meta name="description" content="Search and discover factions in Torn with advanced filtering options and application links." />
       </Helmet>
       
-      <Card className="border-gray-700 bg-game-dark shadow-game mb-6">
-        <CardHeader>
-          <div className="flex justify-between items-center">
-            <div>
-              <CardTitle className="flex items-center">
-                <Shield className="h-5 w-5 mr-2" />
-                Find Factions
+      <MainLayout title="Faction Search">
+        <div className="space-y-6">
+          {/* Search Filters */}
+          <Card className="bg-game-dark border-gray-700">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Search className="h-5 w-5" />
+                Search Filters
               </CardTitle>
-              <CardDescription className="mt-1">
-                Last Updated: {data?.crawl_status?.last_indexed || "Never"}
-              </CardDescription>
-            </div>
-          </div>
-        </CardHeader>
-        
-        <CardContent>
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Input
-                  placeholder="Search by faction name or tag..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="bg-game-panel border-gray-700"
-                />
-              </div>
-              
-              <div>
-                <div className="relative">
-                  <div 
-                    className="w-full p-2 bg-game-panel border border-gray-700 rounded-md flex items-center justify-between text-sm cursor-pointer hover:bg-gray-800"
-                    onClick={() => {
-                      const dropdown = document.getElementById("sort-dropdown");
-                      if (dropdown) {
-                        dropdown.classList.toggle("hidden");
-                      }
-                    }}
-                  >
-                    <span>
-                      {sortBy === "respect-desc" ? "Respect (High to Low)" :
-                       sortBy === "respect-asc" ? "Respect (Low to High)" :
-                       sortBy === "members-desc" ? "Members (High to Low)" :
-                       sortBy === "members-asc" ? "Members (Low to High)" :
-                       sortBy === "age-desc" ? "Age (Oldest)" :
-                       sortBy === "age-asc" ? "Age (Newest)" : "Respect (High to Low)"}
-                    </span>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="m6 9 6 6 6-6"/>
-                    </svg>
-                  </div>
-                  
-                  <div id="sort-dropdown" className="absolute z-10 w-full mt-1 bg-background border border-border rounded-md shadow-lg hidden">
-                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setSortBy("respect-desc"); document.getElementById("sort-dropdown")?.classList.add("hidden"); }}>Respect (High to Low)</div>
-                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setSortBy("respect-asc"); document.getElementById("sort-dropdown")?.classList.add("hidden"); }}>Respect (Low to High)</div>
-                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setSortBy("members-desc"); document.getElementById("sort-dropdown")?.classList.add("hidden"); }}>Members (High to Low)</div>
-                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setSortBy("members-asc"); document.getElementById("sort-dropdown")?.classList.add("hidden"); }}>Members (Low to High)</div>
-                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setSortBy("age-desc"); document.getElementById("sort-dropdown")?.classList.add("hidden"); }}>Age (Oldest)</div>
-                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setSortBy("age-asc"); document.getElementById("sort-dropdown")?.classList.add("hidden"); }}>Age (Newest)</div>
-                  </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div>
+                  <Label htmlFor="search">Faction Name</Label>
+                  <Input
+                    id="search"
+                    placeholder="Search by name or tag..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="bg-gray-800 border-gray-600"
+                  />
                 </div>
-              </div>
-            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <div className="flex justify-between items-center mb-1">
-                  <label className="text-sm text-gray-400">Respect Range:</label>
-                  <span className="text-sm font-medium">{formatNumber(minRespect)} - {formatNumber(maxRespect)}</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Input 
+                <div>
+                  <Label htmlFor="minRespect">Min Respect</Label>
+                  <Input
+                    id="minRespect"
                     type="number"
-                    min={0}
-                    max={maxRespect}
+                    min="0"
                     value={minRespect}
-                    onChange={(e) => {
-                      const value = parseInt(e.target.value);
-                      if (value >= 0 && value <= maxRespect) {
-                        setMinRespect(value);
-                      }
-                    }}
-                    className="bg-game-panel border-gray-700 h-8 w-20 text-center"
-                    placeholder="Min"
+                    onChange={(e) => setMinRespect(Number(e.target.value))}
+                    className="bg-gray-800 border-gray-600"
+                    placeholder="0"
                   />
-                  <span className="text-gray-400">to</span>
-                  <Input 
+                </div>
+
+                <div>
+                  <Label htmlFor="maxRespect">Max Respect</Label>
+                  <Input
+                    id="maxRespect"
                     type="number"
-                    min={minRespect}
+                    min="0"
                     value={maxRespect}
-                    onChange={(e) => {
-                      const value = parseInt(e.target.value);
-                      if (value >= minRespect) {
-                        setMaxRespect(value);
-                      }
-                    }}
-                    className="bg-game-panel border-gray-700 h-8 w-20 text-center"
-                    placeholder="Max"
+                    onChange={(e) => setMaxRespect(Number(e.target.value))}
+                    className="bg-gray-800 border-gray-600"
+                    placeholder="10,000,000"
                   />
                 </div>
-              </div>
 
-              <div>
-                <div className="flex justify-between items-center mb-1">
-                  <label className="text-sm text-gray-400">Member Range:</label>
-                  <span className="text-sm font-medium">{minMembers} - {maxMembers}</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Input 
+                <div>
+                  <Label htmlFor="minMembers">Min Members</Label>
+                  <Input
+                    id="minMembers"
                     type="number"
-                    min={1}
-                    max={maxMembers}
+                    min="1"
+                    max="100"
                     value={minMembers}
-                    onChange={(e) => {
-                      const value = parseInt(e.target.value);
-                      if (value >= 1 && value <= maxMembers) {
-                        setMinMembers(value);
-                      }
-                    }}
-                    className="bg-game-panel border-gray-700 h-8 w-16 text-center"
-                    placeholder="Min"
+                    onChange={(e) => setMinMembers(Number(e.target.value))}
+                    className="bg-gray-800 border-gray-600"
                   />
-                  <span className="text-gray-400">to</span>
-                  <Input 
+                </div>
+
+                <div>
+                  <Label htmlFor="maxMembers">Max Members</Label>
+                  <Input
+                    id="maxMembers"
                     type="number"
-                    min={minMembers}
-                    max={100}
+                    min="1"
+                    max="100"
                     value={maxMembers}
-                    onChange={(e) => {
-                      const value = parseInt(e.target.value);
-                      if (value >= minMembers && value <= 100) {
-                        setMaxMembers(value);
-                      }
-                    }}
-                    className="bg-game-panel border-gray-700 h-8 w-16 text-center"
-                    placeholder="Max"
+                    onChange={(e) => setMaxMembers(Number(e.target.value))}
+                    className="bg-gray-800 border-gray-600"
                   />
                 </div>
-              </div>
-            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <div className="flex justify-between items-center mb-1">
-                  <label className="text-sm text-gray-400">Minimum Best Chain:</label>
+                <div>
+                  <Label htmlFor="minBestChain">Min Best Chain</Label>
+                  <Input
+                    id="minBestChain"
+                    type="number"
+                    min="0"
+                    value={minBestChain}
+                    onChange={(e) => setMinBestChain(Number(e.target.value))}
+                    className="bg-gray-800 border-gray-600"
+                  />
                 </div>
-                <Input 
-                  type="number"
-                  min={0}
-                  value={minBestChain}
-                  onChange={(e) => {
-                    const value = parseInt(e.target.value);
-                    if (value >= 0) {
-                      setMinBestChain(value);
-                    }
-                  }}
-                  className="bg-game-panel border-gray-700"
-                  placeholder="Minimum best chain"
-                />
+
+                <div>
+                  <Label htmlFor="minAge">Min Age (days)</Label>
+                  <Input
+                    id="minAge"
+                    type="number"
+                    min="0"
+                    value={minAge}
+                    onChange={(e) => setMinAge(Number(e.target.value))}
+                    className="bg-gray-800 border-gray-600"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="sortBy">Sort By</Label>
+                  <Select value={sortBy} onValueChange={setSortBy}>
+                    <SelectTrigger className="bg-gray-800 border-gray-600">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="respect-desc">Respect (Highest)</SelectItem>
+                      <SelectItem value="respect-asc">Respect (Lowest)</SelectItem>
+                      <SelectItem value="members-desc">Members (Most)</SelectItem>
+                      <SelectItem value="members-asc">Members (Least)</SelectItem>
+                      <SelectItem value="chain-desc">Best Chain (Highest)</SelectItem>
+                      <SelectItem value="chain-asc">Best Chain (Lowest)</SelectItem>
+                      <SelectItem value="age-desc">Age (Oldest)</SelectItem>
+                      <SelectItem value="age-asc">Age (Newest)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
-              <div>
-                <div className="flex justify-between items-center mb-1">
-                  <label className="text-sm text-gray-400">Minimum Age (days):</label>
-                </div>
-                <Input 
-                  type="number"
-                  min={0}
-                  value={minAge}
-                  onChange={(e) => {
-                    const value = parseInt(e.target.value);
-                    if (value >= 0) {
-                      setMinAge(value);
-                    }
-                  }}
-                  className="bg-game-panel border-gray-700"
-                  placeholder="Minimum faction age"
-                />
+              <div className="flex gap-2">
+                <Button onClick={handleSearch} disabled={isFetching} className="bg-blue-600 hover:bg-blue-700">
+                  <Search className="h-4 w-4 mr-2" />
+                  {isFetching ? "Searching..." : "Search Factions"}
+                </Button>
+                <Button onClick={resetFilters} variant="outline" className="border-gray-600">
+                  <RotateCcw className="h-4 w-4 mr-2" />
+                  Reset
+                </Button>
               </div>
-            </div>
-            
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Button 
-                onClick={handleSearch}
-                disabled={isLoading}
-                className="flex-1 bg-blue-600 hover:bg-blue-700"
-              >
-                {isLoading ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <Search className="mr-2 h-4 w-4" />
+            </CardContent>
+          </Card>
+
+          {/* Results */}
+          <Card className="bg-game-dark border-gray-700">
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span className="flex items-center gap-2">
+                  <Users className="h-5 w-5" />
+                  {hasSearched ? "Search Results" : "Top Factions by Respect"}
+                </span>
+                {data && (
+                  <span className="text-sm text-gray-400">
+                    {data.meta.total} factions found
+                  </span>
                 )}
-                Search Factions
-              </Button>
-              
-              <Button 
-                variant="outline" 
-                onClick={() => setLocation('/')}
-                className="flex-1 sm:flex-none"
-              >
-                Back to Dashboard
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-      
-      {/* Results Section */}
-      {hasSearched && (
-        <Card className="border-gray-700 bg-game-dark shadow-game">
-          <CardHeader>
-            <div className="flex justify-between items-center">
-              <CardTitle>{hasSearched ? "Faction Search Results" : "Top Factions by Respect"}</CardTitle>
-              {data && (
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => refetch()}
-                  disabled={isFetching}
-                >
-                  {isFetching ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  ) : (
-                    <RefreshCw className="mr-2 h-4 w-4" />
-                  )}
-                  Refresh
-                </Button>
-              )}
-            </div>
-          </CardHeader>
-          
-          <CardContent>
-            {isLoading ? (
-              <div className="flex justify-center items-center h-40">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                <span className="ml-2 text-lg">Searching factions...</span>
-              </div>
-            ) : isError ? (
-              <div className="flex flex-col items-center justify-center py-12 text-center">
-                <AlertCircle className="h-12 w-12 text-red-500 mb-4" />
-                <h3 className="text-lg font-medium text-gray-300 mb-2">Search Failed</h3>
-                <p className="text-gray-400 max-w-md mb-4">
-                  Failed to search factions. Please try again.
-                </p>
-                <Button variant="outline" onClick={() => refetch()}>
-                  Try Again
-                </Button>
-              </div>
-            ) : data && data.factions.length > 0 ? (
-              <>
-                <div className="rounded-md border border-gray-700">
-                  <Table>
-                    <TableHeader>
-                      <TableRow className="hover:bg-transparent border-gray-700">
-                        <TableHead className="w-[220px]">Faction</TableHead>
-                        <TableHead className="text-center">Members</TableHead>
-                        <TableHead className="text-center">Respect</TableHead>
-                        <TableHead className="text-center">Territory</TableHead>
-                        <TableHead>Leader</TableHead>
-                        <TableHead className="text-right">Best Chain</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {data.factions.map((faction) => (
-                        <TableRow key={faction.id} className="border-gray-700">
-                          <TableCell className="font-medium">
-                            <div className="flex items-center">
-                              <div className="w-8 h-8 rounded-full bg-primary bg-opacity-30 flex items-center justify-center mr-2">
-                                <Shield className="text-primary-light h-4 w-4" />
-                              </div>
-                              <div>
-                                <div>{faction.name} [{faction.tag}]</div>
-                                <div className="text-xs text-gray-400">#{faction.id}</div>
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <Badge variant="outline" className="bg-blue-500/10 text-blue-400 border-blue-500/30">
-                              {faction.members}/{faction.capacity}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <span className="text-sm font-medium">{formatNumber(faction.respect)}</span>
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <span className="text-sm">{faction.territory}</span>
-                          </TableCell>
-                          <TableCell>
-                            <div className="text-sm">
-                              <div className="font-medium">{faction.leader.name}</div>
-                              <div className="text-xs text-gray-400">ID: #{faction.leader.id}</div>
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <div className="text-sm">
-                              <div className="font-medium">{formatNumber(faction.best_chain)}</div>
-                              <div className="text-xs text-gray-400">{faction.age} days old</div>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {isLoading ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
+                  <p className="text-gray-400 mt-2">Loading factions...</p>
                 </div>
-                
-                {data.meta.total_pages > 1 && (
-                  <div className="mt-6">
-                    <Pagination>
-                      <PaginationContent>
-                        <PaginationItem>
-                          <PaginationPrevious 
-                            onClick={() => setPage(p => Math.max(1, p - 1))} 
-                            disabled={page === 1}
-                            className={page === 1 ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
-                          />
-                        </PaginationItem>
-                        
-                        <PaginationItem>
-                          <PaginationLink isActive>{page}</PaginationLink>
-                        </PaginationItem>
-                        
-                        <PaginationItem>
-                          <PaginationNext 
-                            onClick={() => setPage(p => Math.min(data.meta.total_pages, p + 1))} 
-                            disabled={page === data.meta.total_pages}
-                            className={page === data.meta.total_pages ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
-                          />
-                        </PaginationItem>
-                      </PaginationContent>
-                    </Pagination>
-                    
-                    <div className="text-center text-xs text-gray-400 mt-2">
-                      Page {page} of {data.meta.total_pages} • Showing {data.factions.length} of {data.meta.total} factions
+              ) : data?.factions.length === 0 ? (
+                <div className="text-center py-8">
+                  <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-400">No factions found matching your criteria.</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {data?.factions.map((faction) => (
+                    <Card key={faction.id} className="bg-gray-800 border-gray-600">
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-3 mb-2">
+                              <h3 className="text-lg font-semibold">{faction.name}</h3>
+                              <span className="text-xs bg-purple-600 text-white px-2 py-1 rounded">
+                                [{faction.tag}]
+                              </span>
+                              <span className={`text-xs px-2 py-1 rounded ${getApplicationStatusColor(faction.application_status)}`}>
+                                {faction.application_status}
+                              </span>
+                            </div>
+                            <p className="text-gray-400 text-sm mb-3">
+                              Leader: <span className="text-white">{faction.leader}</span>
+                              {faction.co_leader && (
+                                <> • Co-Leader: <span className="text-white">{faction.co_leader}</span></>
+                              )}
+                              • Age: <span className="text-white">{faction.age} days</span>
+                            </p>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mb-3">
+                              <div className="flex items-center gap-2">
+                                <Crown className="h-4 w-4 text-yellow-400" />
+                                <span>{formatNumber(faction.respect)} respect</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Users className="h-4 w-4 text-blue-400" />
+                                <span>{faction.members}/{faction.capacity} members</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <TrendingUp className="h-4 w-4 text-green-400" />
+                                <span>{formatNumber(faction.best_chain)} best chain</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Shield className="h-4 w-4 text-red-400" />
+                                <span>{faction.territory_wars} territory wars</span>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex flex-col gap-2">
+                            <Button
+                              asChild
+                              size="sm"
+                              className="bg-green-600 hover:bg-green-700"
+                              disabled={faction.application_status === "Closed"}
+                            >
+                              <a
+                                href={getApplicationUrl(faction.id)}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-2"
+                              >
+                                <ExternalLink className="h-4 w-4" />
+                                {faction.application_status === "Open" ? "Apply Now" : 
+                                 faction.application_status === "Tag to Apply" ? "Contact" : "View"}
+                              </a>
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+
+                  {/* Pagination */}
+                  {data && data.meta.total_pages > 1 && (
+                    <div className="flex justify-center gap-2 pt-4">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setPage(Math.max(1, page - 1))}
+                        disabled={page === 1}
+                        className="border-gray-600"
+                      >
+                        Previous
+                      </Button>
+                      <span className="flex items-center px-3 text-sm text-gray-400">
+                        Page {page} of {data.meta.total_pages}
+                      </span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setPage(Math.min(data.meta.total_pages, page + 1))}
+                        disabled={page === data.meta.total_pages}
+                        className="border-gray-600"
+                      >
+                        Next
+                      </Button>
                     </div>
-                  </div>
-                )}
-              </>
-            ) : (
-              <div className="flex flex-col items-center justify-center py-12 text-center">
-                <Shield className="h-12 w-12 text-gray-500 mb-4" />
-                <h3 className="text-lg font-medium text-gray-300 mb-2">No Factions Found</h3>
-                <p className="text-gray-400 max-w-md mb-4">
-                  No factions match your search criteria. Try adjusting your filters.
-                </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
-    </MainLayout>
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Crawl Status */}
+          {data?.crawl_status && (
+            <Card className="bg-game-dark border-gray-700">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between text-sm text-gray-400">
+                  <span>Data indexed: {data.crawl_status.total_indexed.toLocaleString()} factions</span>
+                  <span>Last updated: {data.crawl_status.last_indexed}</span>
+                  <span>{data.crawl_status.crawl_complete_percentage}% complete</span>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </MainLayout>
+    </>
   );
 }
