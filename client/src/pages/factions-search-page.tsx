@@ -43,6 +43,7 @@ interface FactionSearchResponse {
 
 export default function FactionsSearchPage() {
   const { user } = useAuth();
+  const [, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
   const [minRespect, setMinRespect] = useState(0);
   const [maxRespect, setMaxRespect] = useState(10000000);
