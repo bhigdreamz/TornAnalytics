@@ -52,7 +52,7 @@ export default function CompanySearchPage() {
   const [minDailyIncome, setMinDailyIncome] = useState(0);
   const [page, setPage] = useState(1);
   const [sortBy, setSortBy] = useState("rating-desc");
-  const [hasSearched, setHasSearched] = useState(false);
+  const [hasSearched, setHasSearched] = useState(true); // Start with true to show default data
   const [showCompanyTypeDropdown, setShowCompanyTypeDropdown] = useState(false);
   const [showSortDropdown, setShowSortDropdown] = useState(false);
 
@@ -64,7 +64,7 @@ export default function CompanySearchPage() {
 
   console.log("Company types data:", companyTypesData);
 
-  // Query for filtered results only (no default data)
+  // Query for companies - always enabled to show default data
   const { data: searchData, isLoading: searchLoading, isFetching, refetch } = useQuery<CompanySearchResponse>({
     queryKey: [
       "/api/companies/search", 
@@ -78,7 +78,7 @@ export default function CompanySearchPage() {
       sortBy, 
       searchQuery
     ],
-    enabled: !!user?.apiKey && hasSearched
+    enabled: !!user?.apiKey
   });
 
   const data = searchData;
@@ -114,7 +114,7 @@ export default function CompanySearchPage() {
     setMinDailyIncome(0);
     setSortBy("rating-desc");
     setPage(1);
-    setHasSearched(false);
+    setHasSearched(true); // Keep showing companies after reset
   };
 
   const formatCurrency = (amount: number) => {
@@ -375,7 +375,9 @@ export default function CompanySearchPage() {
               <CardTitle className="flex items-center justify-between">
                 <span className="flex items-center gap-2">
                   <Building2 className="h-5 w-5" />
-                  {hasSearched ? "Search Results" : "Company Search"}
+                  {(companyType !== "all" || searchQuery || minRating > 1 || maxRating < 10 || minEmployees > 0 || maxEmployees < 10 || minDailyIncome > 0) 
+                    ? "Search Results" 
+                    : "All Company Types"}
                 </span>
                 {data && (
                   <span className="text-sm text-gray-400">
@@ -385,13 +387,7 @@ export default function CompanySearchPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {!hasSearched ? (
-                <div className="text-center py-8">
-                  <Building2 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">Search Companies</h3>
-                  <p className="text-gray-400">Configure your filters above and click "Search Companies" to find companies.</p>
-                </div>
-              ) : isLoading ? (
+              {isLoading ? (
                 <div className="text-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
                   <p className="text-gray-400 mt-2">Searching companies...</p>
