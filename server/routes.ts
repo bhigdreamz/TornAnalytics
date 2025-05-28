@@ -544,7 +544,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Faction Search
+  // Faction Search - real API endpoint for faction member candidates
+  app.get("/api/faction/search", isAuthenticated, async (req, res) => {
+    try {
+      const user = req.user as any;
+      if (!user.apiKey) {
+        return res.status(400).json({ message: "API key not configured. Please add your Torn API key in settings." });
+      }
+
+      const searchParams = {
+        page: parseInt(req.query.page as string) || 1,
+        minLevel: parseInt(req.query.minLevel as string) || 1,
+        maxLevel: parseInt(req.query.maxLevel as string) || 100,
+        minStats: parseInt(req.query.minStats as string) || 0,
+        activeOnly: req.query.activeOnly === 'true',
+        excludeInFaction: req.query.excludeInFaction === 'true',
+        excludeTraveling: req.query.excludeTraveling === 'true',
+        sortBy: req.query.sortBy as string || "level-desc",
+        searchQuery: req.query.searchQuery as string || ""
+      };
+
+      const results = await storage.searchFactionCandidates(searchParams);
+      res.json(results);
+    } catch (error) {
+      res.status(500).json({
+        message: error instanceof Error ? error.message : "Failed to search faction candidates",
+      });
+    }
+  });
+
+  // Faction Search for existing factions
   app.get("/api/factions/search", isAuthenticated, async (req, res) => {
     try {
       const user = req.user as any;

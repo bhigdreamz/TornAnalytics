@@ -505,7 +505,8 @@ export class MemStorage implements IStorage {
       // Level filter
       if (player.level < minLevel || player.level > maxLevel) return false;
 
-      // Work stats filter
+      // Work stats filter - add null checks
+      if (!player.work_stats) return false;
       if (player.work_stats.intelligence < minIntelligence) return false;
       if (player.work_stats.endurance < minEndurance) return false;
       if (player.work_stats.manual_labor < minManualLabor) return false;

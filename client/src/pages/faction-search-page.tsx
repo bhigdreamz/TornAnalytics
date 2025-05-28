@@ -109,6 +109,25 @@ export default function FactionSearchPage() {
       sortBy, 
       searchQuery
     ],
+    queryFn: async () => {
+      const params = new URLSearchParams({
+        page: page.toString(),
+        minLevel: minLevel.toString(),
+        maxLevel: maxLevel.toString(),
+        minStats: minStats.toString(),
+        activeOnly: activeOnly.toString(),
+        excludeInFaction: excludeInFaction.toString(),
+        excludeTraveling: excludeTraveling.toString(),
+        sortBy: sortBy,
+        searchQuery: searchQuery
+      });
+      
+      const response = await fetch(`/api/faction/search?${params}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch faction candidates');
+      }
+      return response.json();
+    },
     enabled: !!user?.apiKey && hasSearched
   });
   

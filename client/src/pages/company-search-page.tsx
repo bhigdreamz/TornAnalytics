@@ -41,8 +41,29 @@ interface CompanySearchResponse {
   };
 }
 
-// Correct company types based on Torn RPG
-// Company types will be fetched from API
+// Company types mapping
+const COMPANY_TYPES: Record<string, string> = {
+  "1": "Hair Salon",
+  "2": "Law Firm", 
+  "3": "Flower Shop",
+  "4": "Car Dealership",
+  "5": "Clothing Store",
+  "6": "Gun Shop",
+  "7": "Electronics Store",
+  "8": "Casino",
+  "9": "Television Network",
+  "10": "Adult Novelties",
+  "11": "Firework Stand",
+  "12": "Logistics",
+  "13": "Grocery Store",
+  "14": "Sweet Shop",
+  "15": "Gas Station",
+  "16": "Restaurant",
+  "17": "Nightclub",
+  "18": "Cyber Cafe",
+  "19": "Theater",
+  "20": "Property Broker"
+};
 
 export default function CompanySearchPage() {
   const { user } = useAuth();
