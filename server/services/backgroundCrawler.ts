@@ -60,23 +60,66 @@ export class BackgroundCrawler {
   }
 
   private async crawlRandomCompanies(): Promise<void> {
-    const companyIds = this.generateRandomIds(1, 50000, this.BATCH_SIZE);
-    
-    for (const companyId of companyIds) {
-      try {
-        const companyData = await this.tornAPI.makeRequest(`company/${companyId}?selections=profile`, this.apiKey);
+    try {
+      // First, get faction members and their company IDs
+      const factionData = await this.tornAPI.makeRequest(`v2/faction?selections=basic,members`, this.apiKey);
+      
+      if (factionData && factionData.members) {
+        console.log(`Found ${Object.keys(factionData.members).length} faction members, collecting their company data...`);
         
-        if (companyData && companyData.company) {
-          await this.storage.storeCompanyData(companyId, companyData.company);
-          console.log(`Crawled company ${companyId}: ${companyData.company.name}`);
+        const companyIds = new Set<number>();
+        
+        // Extract company IDs from faction members
+        for (const [memberId, memberData] of Object.entries(factionData.members)) {
+          const member = memberData as any;
+          if (member.job && member.job.company_id) {
+            companyIds.add(member.job.company_id);
+          }
         }
         
-        // Small delay between requests
-        await this.delay(1000);
-      } catch (error) {
-        // Company might not exist or be private, skip silently
-        continue;
+        console.log(`Found ${companyIds.size} unique companies from faction members`);
+        
+        // Crawl each unique company
+        const companyIdArray = Array.from(companyIds);
+        for (const companyId of companyIdArray) {
+          try {
+            const companyData = await this.tornAPI.makeRequest(`company/${companyId}?selections=profile`, this.apiKey);
+            
+            if (companyData && companyData.company) {
+              await this.storage.storeCompanyData(companyId, companyData.company);
+              console.log(`Crawled faction member company ${companyId}: ${companyData.company.name}`);
+            }
+            
+            // Small delay between requests
+            await this.delay(1000);
+          } catch (error) {
+            console.log(`Could not access company ${companyId} (private or doesn't exist)`);
+            continue;
+          }
+        }
       }
+      
+      // Also crawl some popular/random companies for variety
+      const randomCompanyIds = this.generateRandomIds(1, 50000, 5);
+      
+      for (const companyId of randomCompanyIds) {
+        try {
+          const companyData = await this.tornAPI.makeRequest(`company/${companyId}?selections=profile`, this.apiKey);
+          
+          if (companyData && companyData.company) {
+            await this.storage.storeCompanyData(companyId, companyData.company);
+            console.log(`Crawled random company ${companyId}: ${companyData.company.name}`);
+          }
+          
+          // Small delay between requests
+          await this.delay(1000);
+        } catch (error) {
+          // Company might not exist or be private, skip silently
+          continue;
+        }
+      }
+    } catch (error) {
+      console.error("Error crawling faction companies:", error);
     }
   }
 

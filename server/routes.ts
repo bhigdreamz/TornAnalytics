@@ -7,6 +7,7 @@ import { TornItemsService } from "./services/tornItemsService";
 import { Crawler } from "./services/crawler";
 import { BazaarScanner } from "./services/bazaarScanner";
 import { BackgroundBazaarScanner } from "./services/backgroundBazaarScanner";
+import { BackgroundCrawler } from "./services/backgroundCrawler";
 import { BazaarItemFinder } from "./services/bazaarItemFinder";
 import { attachEnvApiKey, useApiKey } from "./middleware/tornApiKeyMiddleware";
 
@@ -635,6 +636,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
+
+  // Initialize background crawler to collect faction member company data
+  const initializeBackgroundCrawler = async () => {
+    try {
+      // Get user with API key to start crawling
+      const users = await storage.getUserByUsername("Mr_Awaken");
+      if (users && users.apiKey) {
+        console.log("Starting background crawler for faction member companies...");
+        const backgroundCrawler = new BackgroundCrawler(tornAPI, storage, users.apiKey);
+        backgroundCrawler.start();
+        console.log("Background crawler started successfully");
+      } else {
+        console.log("No API key available for background crawling");
+      }
+    } catch (error) {
+      console.error("Failed to start background crawler:", error);
+    }
+  };
+
+  // Start background crawler after a short delay
+  setTimeout(initializeBackgroundCrawler, 5000);
 
   // Create server instance
   const server = createServer(app);
