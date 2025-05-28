@@ -242,21 +242,21 @@ export default function FactionsSearchPage() {
 
                 <div>
                   <Label htmlFor="sortBy">Sort By</Label>
-                  <Select value={sortBy} onValueChange={setSortBy}>
-                    <SelectTrigger className="bg-gray-800 border-gray-600">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="respect-desc">Respect (Highest)</SelectItem>
-                      <SelectItem value="respect-asc">Respect (Lowest)</SelectItem>
-                      <SelectItem value="members-desc">Members (Most)</SelectItem>
-                      <SelectItem value="members-asc">Members (Least)</SelectItem>
-                      <SelectItem value="chain-desc">Best Chain (Highest)</SelectItem>
-                      <SelectItem value="chain-asc">Best Chain (Lowest)</SelectItem>
-                      <SelectItem value="age-desc">Age (Oldest)</SelectItem>
-                      <SelectItem value="age-asc">Age (Newest)</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <select
+                    id="sortBy"
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value)}
+                    className="w-full bg-gray-800 border border-gray-600 rounded-md px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="respect-desc">Respect (Highest)</option>
+                    <option value="respect-asc">Respect (Lowest)</option>
+                    <option value="members-desc">Members (Most)</option>
+                    <option value="members-asc">Members (Least)</option>
+                    <option value="chain-desc">Best Chain (Highest)</option>
+                    <option value="chain-asc">Best Chain (Lowest)</option>
+                    <option value="age-desc">Age (Oldest)</option>
+                    <option value="age-asc">Age (Newest)</option>
+                  </select>
                 </div>
               </div>
 

@@ -197,16 +197,16 @@ export default function CompanySearchPage() {
 
                 <div>
                   <Label htmlFor="companyType">Company Type</Label>
-                  <Select value={companyType} onValueChange={setCompanyType}>
-                    <SelectTrigger className="bg-gray-800 border-gray-600">
-                      <SelectValue placeholder="Select type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Object.entries(COMPANY_TYPES).map(([id, name]) => (
-                        <SelectItem key={id} value={id}>{name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <select
+                    id="companyType"
+                    value={companyType}
+                    onChange={(e) => setCompanyType(e.target.value)}
+                    className="w-full bg-gray-800 border border-gray-600 rounded-md px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    {Object.entries(COMPANY_TYPES).map(([id, name]) => (
+                      <option key={id} value={id}>{name}</option>
+                    ))}
+                  </select>
                 </div>
 
                 <div>
@@ -273,21 +273,21 @@ export default function CompanySearchPage() {
 
                 <div>
                   <Label htmlFor="sortBy">Sort By</Label>
-                  <Select value={sortBy} onValueChange={setSortBy}>
-                    <SelectTrigger className="bg-gray-800 border-gray-600">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="rating-desc">Rating (High to Low)</SelectItem>
-                      <SelectItem value="rating-asc">Rating (Low to High)</SelectItem>
-                      <SelectItem value="employees-desc">Employees (Most)</SelectItem>
-                      <SelectItem value="employees-asc">Employees (Least)</SelectItem>
-                      <SelectItem value="income-desc">Income (Highest)</SelectItem>
-                      <SelectItem value="income-asc">Income (Lowest)</SelectItem>
-                      <SelectItem value="age-desc">Age (Oldest)</SelectItem>
-                      <SelectItem value="age-asc">Age (Newest)</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <select
+                    id="sortBy"
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value)}
+                    className="w-full bg-gray-800 border border-gray-600 rounded-md px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="rating-desc">Rating (High to Low)</option>
+                    <option value="rating-asc">Rating (Low to High)</option>
+                    <option value="employees-desc">Employees (Most)</option>
+                    <option value="employees-asc">Employees (Least)</option>
+                    <option value="income-desc">Income (Highest)</option>
+                    <option value="income-asc">Income (Lowest)</option>
+                    <option value="age-desc">Age (Oldest)</option>
+                    <option value="age-asc">Age (Newest)</option>
+                  </select>
                 </div>
               </div>
 
