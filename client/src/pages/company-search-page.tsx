@@ -1,4 +1,3 @@
-
 import MainLayout from "@/components/layouts/MainLayout";
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -49,7 +48,7 @@ export default function CompanySearchPage() {
   const [minRating, setMinRating] = useState(1);
   const [maxRating, setMaxRating] = useState(10);
   const [minEmployees, setMinEmployees] = useState(0);
-  const [maxEmployees, setMaxEmployees] = useState(100);
+  const [maxEmployees, setMaxEmployees] = useState(10);
   const [minDailyIncome, setMinDailyIncome] = useState(0);
   const [page, setPage] = useState(1);
   const [sortBy, setSortBy] = useState("rating-desc");
@@ -111,7 +110,7 @@ export default function CompanySearchPage() {
     setMinRating(1);
     setMaxRating(10);
     setMinEmployees(0);
-    setMaxEmployees(100);
+    setMaxEmployees(10);
     setMinDailyIncome(0);
     setSortBy("rating-desc");
     setPage(1);
@@ -136,7 +135,9 @@ export default function CompanySearchPage() {
       "income-desc": "Income (Highest)",
       "income-asc": "Income (Lowest)",
       "age-desc": "Age (Oldest)",
-      "age-asc": "Age (Newest)"
+      "age-asc": "Age (Newest)",
+      "type-asc": "Type (A-Z)",
+      "type-desc": "Type (Z-A)"
     };
     return labels[value] || "Rating (High to Low)";
   };
@@ -161,7 +162,7 @@ export default function CompanySearchPage() {
         <title>Company Search | Byte-Core Vault</title>
         <meta name="description" content="Search and discover companies in Torn with advanced filtering options." />
       </Helmet>
-      
+
       <MainLayout title="Company Search">
         {/* Back to Dashboard Button */}
         <div className="mb-6">
@@ -177,7 +178,7 @@ export default function CompanySearchPage() {
             Back to Dashboard
           </Button>
         </div>
-        
+
         <div className="space-y-6">
           {/* Search Filters */}
           <Card className="bg-game-dark border-gray-700">
@@ -335,7 +336,9 @@ export default function CompanySearchPage() {
                         { value: "income-desc", label: "Income (Highest)" },
                         { value: "income-asc", label: "Income (Lowest)" },
                         { value: "age-desc", label: "Age (Oldest)" },
-                        { value: "age-asc", label: "Age (Newest)" }
+                        { value: "age-asc", label: "Age (Newest)" },
+                        { value: "type-asc", label: "Type (A-Z)" },
+                        { value: "type-desc", label: "Type (Z-A)" }
                       ].map(option => (
                         <div 
                           key={option.value}

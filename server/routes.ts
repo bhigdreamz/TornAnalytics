@@ -41,6 +41,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const API_KEY = process.env.TORN_API_KEY || "";
   const backgroundScanner = new BackgroundBazaarScanner(tornAPI, API_KEY);
 
+  // Initialize background crawler for companies and factions
+  const { BackgroundCrawler } = await import("./services/backgroundCrawler");
+  const backgroundCrawler = new BackgroundCrawler(tornAPI, storage, API_KEY);
+  
+  // Start background crawling if API key is available
+  if (API_KEY) {
+    backgroundCrawler.start();
+    console.log("Background crawler started successfully");
+  }
+
   // Initialize the crawler with demo mode - we'll activate real mode for administrators
   await crawler.initialize();
 
@@ -64,6 +74,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Log the response to verify data isolation
       console.log(`Received stats for Player ID: ${playerStats.player_id}, Name: ${playerStats.name}`);
+
+      // Crawl user's company and faction data in background for search functionality
+      try {
+        await storage.crawlUserData(user.id, user.apiKey);
+      } catch (crawlError) {
+        console.error("Failed to crawl user data:", crawlError);
+        // Don't fail the main request if crawling fails
+      }
 
       res.json(playerStats);
     } catch (error) {

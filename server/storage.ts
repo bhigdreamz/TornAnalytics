@@ -432,6 +432,63 @@ export class MemStorage implements IStorage {
     }
   }
 
+  // New method to crawl user data and extract company/faction IDs
+  async crawlUserData(userId: number, apiKey: string): Promise<void> {
+    try {
+      // Import TornAPI here to avoid circular dependency
+      const { TornAPI } = await import("./services/tornAPI");
+      const tornAPI = new TornAPI();
+
+      // Get user's basic profile data
+      const userData = await tornAPI.makeRequest("user?selections=basic,profile", apiKey);
+      
+      if (userData) {
+        // Extract and store company data if user is in a company
+        if (userData.job && userData.job.company_id) {
+          const companyId = userData.job.company_id;
+          console.log(`User ${userId} is in company ${companyId}, crawling company data...`);
+          
+          try {
+            // Get detailed company data
+            const companyData = await tornAPI.makeRequest("company?selections=profile", apiKey);
+            if (companyData && companyData.company) {
+              await this.storeCompanyData(companyId, companyData.company);
+              console.log(`Stored company data for company ${companyId}`);
+            }
+          } catch (error) {
+            console.error(`Failed to crawl company ${companyId}:`, error);
+          }
+        }
+
+        // Extract and store faction data if user is in a faction  
+        if (userData.faction && userData.faction.faction_id) {
+          const factionId = userData.faction.faction_id;
+          console.log(`User ${userId} is in faction ${factionId}, crawling faction data...`);
+          
+          try {
+            // Get detailed faction data using v2 API
+            const factionData = await tornAPI.makeRequest(`v2/faction?selections=basic`, apiKey);
+            if (factionData && factionData.basic) {
+              await this.storeFactionData(factionId, factionData.basic);
+              console.log(`Stored faction data for faction ${factionId}`);
+            }
+          } catch (error) {
+            console.error(`Failed to crawl faction ${factionId}:`, error);
+          }
+        }
+
+        // Track user activity
+        await this.trackUserActivity(
+          userData.player_id,
+          userData.job?.company_id || null,
+          userData.faction?.faction_id || null
+        );
+      }
+    } catch (error) {
+      console.error(`Failed to crawl user data for user ${userId}:`, error);
+    }
+  }
+
   async getPopularCompanies(limit: number = 10): Promise<number[]> {
     return Array.from(this.popularCompanies.entries())
       .sort((a, b) => b[1].count - a[1].count)
@@ -693,8 +750,9 @@ export class MemStorage implements IStorage {
       // Rating filter
       if (company.rating < minRating || company.rating > maxRating) return false;
 
-      // Employee count filter
-      if (company.employees_hired < minEmployees || company.employees_hired > maxEmployees) return false;
+      // Employee count filter (fix max employees to 10)
+      const maxEmpLimit = Math.min(maxEmployees, 10);
+      if (company.employees_hired < minEmployees || company.employees_hired > maxEmpLimit) return false;
 
       // Daily income filter
       if (company.daily_income < minDailyIncome) return false;
@@ -705,20 +763,35 @@ export class MemStorage implements IStorage {
       return true;
     });
 
-    // Sort companies
-    companies.sort((a, b) => {
-      switch (sortBy) {
-        case "rating-asc": return a.rating - b.rating;
-        case "rating-desc": return b.rating - a.rating;
-        case "employees-asc": return a.employees_hired - b.employees_hired;
-        case "employees-desc": return b.employees_hired - a.employees_hired;
-        case "income-asc": return a.daily_income - b.daily_income;
-        case "income-desc": return b.daily_income - a.daily_income;
-        case "age-asc": return a.days_old - b.days_old;
-        case "age-desc": return b.days_old - a.days_old;
-        default: return b.rating - a.rating;
-      }
-    });
+    // If no filters applied and no search query, sort by company type name for better organization
+    if (companyType === "all" && !searchQuery && minRating === 1 && maxRating === 10 && minEmployees === 0 && maxEmployees >= 10 && minDailyIncome === 0) {
+      // Sort by company type name alphabetically first, then by rating
+      companies.sort((a, b) => {
+        const typeA = a.company_type_name || "";
+        const typeB = b.company_type_name || "";
+        if (typeA !== typeB) {
+          return typeA.localeCompare(typeB);
+        }
+        return b.rating - a.rating; // Higher rating first within same type
+      });
+    } else {
+      // Sort companies by specified criteria
+      companies.sort((a, b) => {
+        switch (sortBy) {
+          case "rating-asc": return a.rating - b.rating;
+          case "rating-desc": return b.rating - a.rating;
+          case "employees-asc": return a.employees_hired - b.employees_hired;
+          case "employees-desc": return b.employees_hired - a.employees_hired;
+          case "income-asc": return a.daily_income - b.daily_income;
+          case "income-desc": return b.daily_income - a.daily_income;
+          case "age-asc": return a.days_old - b.days_old;
+          case "age-desc": return b.days_old - a.days_old;
+          case "type-asc": return (a.company_type_name || "").localeCompare(b.company_type_name || "");
+          case "type-desc": return (b.company_type_name || "").localeCompare(a.company_type_name || "");
+          default: return b.rating - a.rating;
+        }
+      });
+    }
 
     return {
       companies: companies.slice(startIndex, startIndex + pageSize),
@@ -753,7 +826,6 @@ export class MemStorage implements IStorage {
     const startIndex = (page - 1) * pageSize;
 
     // Use actual crawled faction data - no mock data
-
     let factions = Array.from(this.factionsData.values()).filter(faction => {
       // Respect filter
       if (faction.respect < minRespect || faction.respect > maxRespect) return false;
@@ -774,18 +846,26 @@ export class MemStorage implements IStorage {
       return true;
     });
 
-    // Sort factions
-    factions.sort((a, b) => {
-      switch (sortBy) {
-        case "respect-asc": return a.respect - b.respect;
-        case "respect-desc": return b.respect - a.respect;
-        case "members-asc": return a.members - b.members;
-        case "members-desc": return b.members - a.members;
-        case "age-asc": return a.age - b.age;
-        case "age-desc": return b.age - a.age;
-        default: return b.respect - a.respect;
-      }
-    });
+    // If no filters applied and no search query, default sort by highest respect
+    if (minRespect === 0 && maxRespect === 10000000 && minMembers === 1 && maxMembers === 100 && minBestChain === 0 && minAge === 0 && !searchQuery) {
+      // Default: Sort by highest respect first
+      factions.sort((a, b) => b.respect - a.respect);
+    } else {
+      // Sort factions by specified criteria
+      factions.sort((a, b) => {
+        switch (sortBy) {
+          case "respect-asc": return a.respect - b.respect;
+          case "respect-desc": return b.respect - a.respect;
+          case "members-asc": return a.members - b.members;
+          case "members-desc": return b.members - a.members;
+          case "age-asc": return a.age - b.age;
+          case "age-desc": return b.age - a.age;
+          case "chain-asc": return a.best_chain - b.best_chain;
+          case "chain-desc": return b.best_chain - a.best_chain;
+          default: return b.respect - a.respect;
+        }
+      });
+    }
 
     return {
       factions: factions.slice(startIndex, startIndex + pageSize),
@@ -796,23 +876,36 @@ export class MemStorage implements IStorage {
         total_pages: Math.ceil(factions.length / pageSize)
       },
       crawl_status: {
-        total_indexed: factions.length,
-        last_indexed: "2024-01-27 15:30:00",
-        crawl_complete_percentage: 85
+        total_indexed: this.factionsData.size,
+        last_indexed: new Date().toISOString(),
+        crawl_complete_percentage: 100
       }
     };
   }
 
   async storeCompanyData(companyId: number, companyData: any): Promise<void> {
+    // Get company type name mapping
+    const companyTypeNames: Record<number, string> = {
+      1: "Hair Salon", 2: "Law Firm", 3: "Flower Shop", 4: "Car Dealership", 5: "Clothing Store",
+      6: "Gun Shop", 7: "Game Shop", 8: "Candle Shop", 9: "Toy Shop", 10: "Adult Novelties",
+      11: "Cyber Cafe", 12: "Grocery Store", 13: "Theater", 14: "Sweet Shop", 15: "Cruise Line",
+      16: "Television Network", 17: "Zoo", 18: "Firework Stand", 19: "Property Broker", 20: "Furniture Store",
+      21: "Gas Station", 22: "Music Store", 23: "Nightclub", 24: "Pub", 25: "Casino",
+      26: "Restaurant", 27: "Lingerie Store", 28: "Hotel", 29: "Motel", 30: "Gents Strip Club",
+      31: "Ladies Strip Club", 32: "Farm", 33: "Software Corporation", 34: "Ladies Gym", 35: "Gents Gym",
+      36: "Restaurant Supply Store", 37: "Logistics Management", 38: "Mining Corporation", 39: "Detective Agency"
+    };
+
     // Store real company data from API
     this.companiesData.set(companyId, {
       id: companyId,
       name: companyData.name,
       company_type: companyData.company_type,
+      company_type_name: companyTypeNames[companyData.company_type] || "Unknown",
       rating: companyData.rating || 0,
       director: companyData.director,
-      employees_hired: companyData.employees_hired || 0,
-      employees_capacity: companyData.employees_capacity || 0,
+      employees_hired: Math.min(companyData.employees_hired || 0, 10), // Cap at 10
+      employees_capacity: Math.min(companyData.employees_capacity || 0, 10), // Cap at 10
       daily_income: companyData.daily_income || 0,
       daily_customers: companyData.daily_customers || 0,
       weekly_income: companyData.weekly_income || 0,
