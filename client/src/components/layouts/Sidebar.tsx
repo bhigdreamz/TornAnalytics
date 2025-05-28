@@ -168,6 +168,8 @@ export default function Sidebar() {
           <div className="space-y-0.5 mb-2">
             <NavItem href="/employees-search" icon={<Briefcase size={18} />} label="Employees Search" isActive={location === '/employees-search'} />
             <NavItem href="/faction-search" icon={<ShieldX size={18} />} label="Faction Members Search" isActive={location === '/faction-search'} />
+            <NavItem href="/company-search" icon={<Building size={18} />} label="Company Search" isActive={location === '/company-search'} />
+            <NavItem href="/factions-search" icon={<Users size={18} />} label="Factions Search" isActive={location === '/factions-search'} />
           </div>
 
           <div className={cn(

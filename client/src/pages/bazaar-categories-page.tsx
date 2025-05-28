@@ -70,7 +70,7 @@ export default function BazaarCategoriesPage() {
             item.name.toLowerCase().includes(searchLower)
           );
 
-          // Sort by relevance (exact match first, then starting with query, then others)
+          // Sort by relevance (exact match first, then starting with query, then starting with query, then others)
           filteredItems.sort((a: TornItem, b: TornItem) => {
             const aName = a.name.toLowerCase();
             const bName = b.name.toLowerCase();
@@ -307,11 +307,26 @@ export default function BazaarCategoriesPage() {
   }
 
   return (
-    <MainLayout title="Bazaar Categories">
+    <MainLayout title="Torn Bazaar Categories">
       <Helmet>
         <title>Bazaar Categories | Byte-Core Vault</title>
-        <meta name="description" content="Browse Torn Bazaar categories with Byte-Core Vault." />
+        <meta name="description" content="Browse Torn RPG bazaar categories and find the best deals with Byte-Core Vault." />
       </Helmet>
+
+      {/* Back to Dashboard Button */}
+      <div className="mb-6">
+        <Button 
+          variant="outline" 
+          onClick={() => navigate('/')}
+          className="flex items-center gap-2"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="m12 19-7-7 7-7"/>
+            <path d="M19 12H5"/>
+          </svg>
+          Back to Dashboard
+        </Button>
+      </div>
 
       <Card className="border-border bg-card shadow mb-6">
         <CardContent className="p-6">

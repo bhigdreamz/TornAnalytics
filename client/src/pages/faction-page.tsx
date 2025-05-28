@@ -114,7 +114,7 @@ export default function FactionPage() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [positionFilter, setPositionFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
-  
+
   // Fetch faction data
   const { 
     data: factionBasic, 
@@ -128,24 +128,24 @@ export default function FactionPage() {
     retry: 1,
     refetchOnWindowFocus: false
   });
-  
+
   // Dummy placeholder for detailed data - not actually used currently
   const data: FactionDetailResponse | undefined = undefined;
-  
+
   // Function to format age in years, months, and days
   const formatFactionAge = (totalDays: number): string => {
     if (totalDays <= 0) return "Age: Unknown";
-    
+
     const years = Math.floor(totalDays / 365);
     const remainingDays = totalDays % 365;
     const months = Math.floor(remainingDays / 30);
     const days = remainingDays % 30;
-    
+
     let result = "Age: ";
     if (years > 0) result += `${years} ${years === 1 ? 'year' : 'years'}, `;
     if (months > 0) result += `${months} ${months === 1 ? 'month' : 'months'}, `;
     if (days > 0 || (years === 0 && months === 0)) result += `${days} ${days === 1 ? 'day' : 'days'}`;
-    
+
     return result;
   };
 
@@ -163,7 +163,7 @@ export default function FactionPage() {
         return <Badge variant="outline">Unknown</Badge>;
     }
   };
-  
+
   // Show loading state when fetching faction data
   if (isLoadingBasic) {
     return (
@@ -179,7 +179,7 @@ export default function FactionPage() {
       </MainLayout>
     );
   }
-  
+
   // Check if faction data is available from the basic endpoint
   if (isLoadingBasic) {
     return (
@@ -201,7 +201,7 @@ export default function FactionPage() {
     const errorMessage = user?.apiKey 
       ? "Failed to load faction data. You might not be in a faction or there was an API error."
       : "Please add your Torn API key in settings to view your faction data.";
-    
+
     return (
       <MainLayout title="Faction Tracking">
         <Helmet>
@@ -223,7 +223,7 @@ export default function FactionPage() {
       </MainLayout>
     );
   }
-  
+
   // Only render the UI if we have valid faction data
   if (!factionBasic) {
     return (
@@ -247,32 +247,32 @@ export default function FactionPage() {
       </MainLayout>
     );
   }
-  
+
   // Extract data from API response and handle it properly
   const memberStatus = factionBasic?.member_status || {};
   const onlineCount = memberStatus.online || 0;
   const idleCount = memberStatus.idle || 0;
   const offlineCount = memberStatus.offline || 0;
   const hospitalCount = memberStatus.hospital || 0;
-  
+
   // Setting placeholder empty array for members since we don't have members data
   const membersArray = [];
   const filteredMembers = [];
-  
+
   const totalMembers = (onlineCount + idleCount + offlineCount + hospitalCount) || 1;
-  
+
   const onlinePercentage = (onlineCount / totalMembers) * 100;
   const idlePercentage = (idleCount / totalMembers) * 100;
   const offlinePercentage = (offlineCount / totalMembers) * 100;
   const hospitalPercentage = (hospitalCount / totalMembers) * 100;
-  
+
   return (
     <MainLayout title="Faction Tracking">
       <Helmet>
         <title>Faction Tracking | Byte-Core Vault</title>
         <meta name="description" content="Track your Torn RPG faction members and performance with Byte-Core Vault." />
       </Helmet>
-      
+
       {/* Back to Dashboard Button */}
       <div className="mb-6">
         <Button 
@@ -287,7 +287,7 @@ export default function FactionPage() {
           Back to Dashboard
         </Button>
       </div>
-      
+
       {/* Faction Overview Card */}
       <div className="mb-6">
         <Card className="border-gray-700 bg-game-dark shadow-game">
@@ -303,7 +303,7 @@ export default function FactionPage() {
                   <p className="text-sm text-gray-400">{formatFactionAge(factionData.age_days)}</p>
                 </div>
               </div>
-              
+
               <Button 
                 variant="outline" 
                 size="sm" 
@@ -319,7 +319,7 @@ export default function FactionPage() {
               </Button>
             </div>
           </CardHeader>
-          
+
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
               <div className="bg-game-panel rounded p-3 border border-gray-700">
@@ -332,7 +332,7 @@ export default function FactionPage() {
                   className="h-1.5 mt-1 bg-gray-700" 
                 />
               </div>
-              
+
               <div className="bg-game-panel rounded p-3 border border-gray-700">
                 <div className="text-xs text-gray-400 mb-1">RESPECT</div>
                 <div className="text-xl font-rajdhani font-bold">
@@ -343,7 +343,7 @@ export default function FactionPage() {
                   Best Chain: 250 hits
                 </div>
               </div>
-              
+
               <div className="bg-game-panel rounded p-3 border border-gray-700">
                 <div className="text-xs text-gray-400 mb-1">TERRITORIES</div>
                 <div className="text-xl font-rajdhani font-bold">
@@ -351,7 +351,7 @@ export default function FactionPage() {
                 </div>
                 {/* Territory value removed per user request */}
               </div>
-              
+
               <div className="bg-game-panel rounded p-3 border border-gray-700">
                 <div className="text-xs text-gray-400 mb-1">WAR STATUS</div>
                 <div className="text-xl font-rajdhani font-bold text-yellow-400 flex items-center">
@@ -363,7 +363,7 @@ export default function FactionPage() {
                 </div>
               </div>
             </div>
-            
+
             {/* Member Status */}
             <div className="mb-3">
               <div className="text-xs text-gray-400 uppercase font-semibold mb-2">Member Status</div>
@@ -385,13 +385,13 @@ export default function FactionPage() {
           </CardContent>
         </Card>
       </div>
-      
+
       {/* Faction Details Card with Tabs */}
       <Card className="border-gray-700 bg-game-dark shadow-game">
         <CardHeader>
           <h3 className="font-bold text-lg">Faction Details</h3>
         </CardHeader>
-        
+
         <CardContent>
           <Tabs defaultValue="members" value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="bg-game-panel mb-4">
@@ -399,7 +399,7 @@ export default function FactionPage() {
               <TabsTrigger value="territories">Territories</TabsTrigger>
               <TabsTrigger value="wars">Wars</TabsTrigger>
             </TabsList>
-            
+
             {/* Members Tab */}
             <TabsContent value="members">
               <div className="flex flex-col md:flex-row justify-between space-y-2 md:space-y-0 md:space-x-2 mb-4">
@@ -411,7 +411,7 @@ export default function FactionPage() {
                     className="w-full bg-game-panel border-gray-700"
                   />
                 </div>
-                
+
                 <div className="flex space-x-2">
                   <Select value={statusFilter} onValueChange={setStatusFilter}>
                     <SelectTrigger className="w-[150px] bg-game-panel border-gray-700">
@@ -425,7 +425,7 @@ export default function FactionPage() {
                       <SelectItem value="Hospital">Hospital</SelectItem>
                     </SelectContent>
                   </Select>
-                  
+
                   <Select value={positionFilter} onValueChange={setPositionFilter}>
                     <SelectTrigger className="w-[150px] bg-game-panel border-gray-700">
                       <SelectValue placeholder="Filter by position" />
@@ -441,7 +441,7 @@ export default function FactionPage() {
                   </Select>
                 </div>
               </div>
-              
+
               <div className="rounded-md border border-gray-700">
                 <Table>
                   <TableHeader>
@@ -503,14 +503,14 @@ export default function FactionPage() {
                 </Table>
               </div>
             </TabsContent>
-            
+
             {/* Territories Tab */}
             <TabsContent value="territories">
               <div className="mb-4">
                 <p className="text-sm text-gray-400 mb-3">
                   Your faction controls {data.territories.length} territories with a total value of ${data.territories.reduce((sum, t) => sum + t.value, 0).toLocaleString()}.
                 </p>
-                
+
                 <div className="rounded-md border border-gray-700">
                   <Table>
                     <TableHeader>
@@ -552,12 +552,12 @@ export default function FactionPage() {
                 </div>
               </div>
             </TabsContent>
-            
+
             {/* Wars Tab */}
             <TabsContent value="wars">
               <div className="mb-6">
                 <h4 className="text-lg font-medium mb-3">Active Wars ({data.wars.active.length})</h4>
-                
+
                 <div className="rounded-md border border-gray-700">
                   <Table>
                     <TableHeader>
@@ -605,10 +605,10 @@ export default function FactionPage() {
                   </Table>
                 </div>
               </div>
-              
+
               <div>
                 <h4 className="text-lg font-medium mb-3">Past Wars ({data.wars.past.length})</h4>
-                
+
                 <div className="rounded-md border border-gray-700">
                   <Table>
                     <TableHeader>

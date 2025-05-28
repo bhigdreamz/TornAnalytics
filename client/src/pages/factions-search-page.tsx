@@ -54,7 +54,8 @@ export default function FactionsSearchPage() {
   const [page, setPage] = useState(1);
   const [sortBy, setSortBy] = useState("respect-desc");
   const [hasSearched, setHasSearched] = useState(false);
-  
+  const [showSortDropdown, setShowSortDropdown] = useState(false);
+
   // Query for default faction list (sorted by respect)
   const { data: defaultData, isLoading: defaultLoading } = useQuery<FactionSearchResponse>({
     queryKey: ["/api/factions/search", 1, 0, 10000000, 1, 100, 0, 0, "respect-desc", ""],
@@ -122,6 +123,20 @@ export default function FactionsSearchPage() {
     }
   };
 
+  const getSortLabel = (sortByValue: string) => {
+    switch (sortByValue) {
+      case "respect-desc": return "Respect (Highest)";
+      case "respect-asc": return "Respect (Lowest)";
+      case "members-desc": return "Members (Most)";
+      case "members-asc": return "Members (Least)";
+      case "chain-desc": return "Best Chain (Highest)";
+      case "chain-asc": return "Best Chain (Lowest)";
+      case "age-desc": return "Age (Oldest)";
+      case "age-asc": return "Age (Newest)";
+      default: return "Sort By";
+    }
+  };
+
   if (!user?.apiKey) {
     return (
       <MainLayout title="Faction Search">
@@ -142,7 +157,7 @@ export default function FactionsSearchPage() {
         <title>Faction Search | Byte-Core Vault</title>
         <meta name="description" content="Search and discover factions in Torn with advanced filtering options and application links." />
       </Helmet>
-      
+
       <MainLayout title="Faction Search">
         <div className="space-y-6">
           {/* Search Filters */}
@@ -242,23 +257,42 @@ export default function FactionsSearchPage() {
                   />
                 </div>
 
-                <div>
+                <div className="dropdown-container relative">
                   <Label htmlFor="sortBy">Sort By</Label>
-                  <select
-                    id="sortBy"
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value)}
-                    className="w-full bg-gray-800 border border-gray-600 rounded-md px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  <div 
+                    className="w-full p-2 bg-gray-800 border border-gray-600 rounded-md flex items-center justify-between text-sm cursor-pointer hover:bg-gray-700"
+                    onClick={() => setShowSortDropdown(!showSortDropdown)}
                   >
-                    <option value="respect-desc">Respect (Highest)</option>
-                    <option value="respect-asc">Respect (Lowest)</option>
-                    <option value="members-desc">Members (Most)</option>
-                    <option value="members-asc">Members (Least)</option>
-                    <option value="chain-desc">Best Chain (Highest)</option>
-                    <option value="chain-asc">Best Chain (Lowest)</option>
-                    <option value="age-desc">Age (Oldest)</option>
-                    <option value="age-asc">Age (Newest)</option>
-                  </select>
+                    <span>{getSortLabel(sortBy)}</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="m6 9 6 6 6-6"/>
+                    </svg>
+                  </div>
+                  {showSortDropdown && (
+                    <div className="absolute top-full left-0 w-full bg-gray-800 border border-gray-600 rounded-md shadow-lg z-10">
+                      {[
+                        { value: "respect-desc", label: "Respect (Highest)" },
+                        { value: "respect-asc", label: "Respect (Lowest)" },
+                        { value: "members-desc", label: "Members (Most)" },
+                        { value: "members-asc", label: "Members (Least)" },
+                        { value: "chain-desc", label: "Best Chain (Highest)" },
+                        { value: "chain-asc", label: "Best Chain (Lowest)" },
+                        { value: "age-desc", label: "Age (Oldest)" },
+                        { value: "age-asc", label: "Age (Newest)" }
+                      ].map(option => (
+                        <div 
+                          key={option.value}
+                          className="p-2 hover:bg-gray-700 cursor-pointer text-white"
+                          onClick={() => {
+                            setSortBy(option.value);
+                            setShowSortDropdown(false);
+                          }}
+                        >
+                          {option.label}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -336,10 +370,6 @@ export default function FactionsSearchPage() {
                               <div className="flex items-center gap-2">
                                 <TrendingUp className="h-4 w-4 text-green-400" />
                                 <span>{formatNumber(faction.best_chain)} best chain</span>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <Shield className="h-4 w-4 text-red-400" />
-                                <span>{faction.territory_wars} territory wars</span>
                               </div>
                             </div>
                           </div>
