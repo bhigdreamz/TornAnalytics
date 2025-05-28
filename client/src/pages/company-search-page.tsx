@@ -63,6 +63,8 @@ export default function CompanySearchPage() {
     enabled: !!user?.apiKey
   });
 
+  console.log("Company types data:", companyTypesData);
+
   // Query for filtered results only (no default data)
   const { data: searchData, isLoading: searchLoading, isFetching, refetch } = useQuery<CompanySearchResponse>({
     queryKey: [

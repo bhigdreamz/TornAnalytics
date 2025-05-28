@@ -602,6 +602,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get company types
+  app.get("/api/company-types", useApiKey, async (req, res) => {
+    try {
+      const { CompanyTypesService } = await import("./services/companyTypes");
+      const companyTypesService = CompanyTypesService.getInstance(tornAPI);
+      const types = await companyTypesService.getAllCompanyTypes(req.apiKey);
+      console.log("Sending company types:", types);
+      res.json(types);
+    } catch (error) {
+      console.error("Error fetching company types:", error);
+      res.status(500).json({
+        message: error instanceof Error ? error.message : "Failed to fetch company types",
+      });
+    }
+  });
+
   // Create server instance
   const server = createServer(app);
   return server;

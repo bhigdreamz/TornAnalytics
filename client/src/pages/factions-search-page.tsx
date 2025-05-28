@@ -62,8 +62,8 @@ export default function FactionsSearchPage() {
     enabled: !!user?.apiKey && !hasSearched
   });
 
-  // Query for filtered search results
-  const { data: searchData, isLoading: searchLoading, refetch, isFetching } = useQuery<FactionSearchResponse>({
+  // Query for filtered results only (no default data)
+  const { data: searchData, isLoading: searchLoading, isFetching, refetch } = useQuery<FactionSearchResponse>({
     queryKey: [
       "/api/factions/search", 
       page, 
