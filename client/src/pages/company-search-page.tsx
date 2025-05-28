@@ -415,7 +415,13 @@ export default function CompanySearchPage() {
                               </div>
                             </div>
                             <p className="text-gray-400 text-sm mb-3">
-                              Director: <span className="text-white">{typeof company.director === 'object' && company.director?.name ? company.director.name : company.director}</span> • 
+                              Director: <span className="text-white">{
+                                typeof company.director === 'object' && company.director?.name 
+                                  ? company.director.name 
+                                  : typeof company.director === 'string' 
+                                    ? company.director 
+                                    : `Player ${company.director}`
+                              }</span> • 
                               Age: <span className="text-white">{company.days_old} days</span>
                             </p>
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">

@@ -744,6 +744,12 @@ export class MemStorage implements IStorage {
 
     // Use actual crawled company data - no mock data
     let companies = Array.from(this.companiesData.values()).filter(company => {
+      // Debug logging for first company
+      if (companies.length === 0) {
+        console.log("First company data structure:", JSON.stringify(company, null, 2));
+        console.log("Company type filter - companyType:", companyType, "company.company_type_name:", company.company_type_name);
+      }
+      
       // Company type filter - compare with company_type_name for string filtering
       if (companyType !== "all" && company.company_type_name !== companyType) return false;
 
