@@ -1,10 +1,31 @@
-
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Users, Briefcase, TrendingUp, Search } from "lucide-react";
+import { useState, useEffect } from "react";
 import { Link } from "wouter";
-import { Search } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 
 export default function EmployeeSearchCard() {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [employees, setEmployees] = useState([]);
+  const [filteredEmployees, setFilteredEmployees] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Fetch real employee data
+  const { data: employeeData } = useQuery({
+    queryKey: ["/api/employees/search", 1, "all", 1, 100, 0, 0, 0, "level-desc", ""],
+    enabled: true
+  });
+
+  useEffect(() => {
+    if (employeeData?.players) {
+      setEmployees(employeeData.players);
+      setFilteredEmployees(employeeData.players);
+    }
+  }, [employeeData]);
+
   return (
     <Card className="bg-game-dark border-gray-700 shadow-game h-full">
       <CardContent className="p-6 flex flex-col items-center justify-center text-center h-full">

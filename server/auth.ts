@@ -165,6 +165,11 @@ export function setupAuth(app: Express) {
       // Store the player data
       await storage.storePlayerData(playerData.player_id, playerData);
       
+      // Track user activity for popular companies and factions
+      const companyId = playerData.job?.company_id || null;
+      const factionId = playerData.faction?.faction_id || null;
+      await storage.trackUserActivity(playerData.player_id, companyId, factionId);
+      
       // Important: Get the EXACT user with this API key or create a new one
       let user = await storage.getUserByApiKey(apiKey);
       

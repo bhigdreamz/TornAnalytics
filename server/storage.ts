@@ -408,6 +408,44 @@ export class MemStorage implements IStorage {
     this.lastCrawlTime = timestamp;
   }
 
+  // Track popular companies and factions based on user activity
+  private popularCompanies = new Map<number, { count: number, lastSeen: number }>();
+  private popularFactions = new Map<number, { count: number, lastSeen: number }>();
+
+  async trackUserActivity(playerId: number, companyId: number | null, factionId: number | null): Promise<void> {
+    const now = Date.now();
+    
+    if (companyId && companyId > 0) {
+      const current = this.popularCompanies.get(companyId) || { count: 0, lastSeen: 0 };
+      this.popularCompanies.set(companyId, {
+        count: current.count + 1,
+        lastSeen: now
+      });
+    }
+    
+    if (factionId && factionId > 0) {
+      const current = this.popularFactions.get(factionId) || { count: 0, lastSeen: 0 };
+      this.popularFactions.set(factionId, {
+        count: current.count + 1,
+        lastSeen: now
+      });
+    }
+  }
+
+  async getPopularCompanies(limit: number = 10): Promise<number[]> {
+    return Array.from(this.popularCompanies.entries())
+      .sort((a, b) => b[1].count - a[1].count)
+      .slice(0, limit)
+      .map(([companyId]) => companyId);
+  }
+
+  async getPopularFactions(limit: number = 10): Promise<number[]> {
+    return Array.from(this.popularFactions.entries())
+      .sort((a, b) => b[1].count - a[1].count)
+      .slice(0, limit)
+      .map(([factionId]) => factionId);
+  }
+
   async getIndexedPlayerCount(): Promise<number> {
     return this.playerData.size;
   }
