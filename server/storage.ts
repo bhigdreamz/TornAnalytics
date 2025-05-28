@@ -902,6 +902,16 @@ export class MemStorage implements IStorage {
       36: "Restaurant Supply Store", 37: "Logistics Management", 38: "Mining Corporation", 39: "Detective Agency"
     };
 
+    // Extract director name properly
+    let directorName = "Unknown";
+    if (typeof companyData.director === 'object' && companyData.director?.name) {
+      directorName = companyData.director.name;
+    } else if (typeof companyData.director === 'string') {
+      directorName = companyData.director;
+    } else if (typeof companyData.director === 'number') {
+      directorName = `Player ${companyData.director}`;
+    }
+
     // Store real company data from API
     this.companiesData.set(companyId, {
       id: companyId,
@@ -909,7 +919,7 @@ export class MemStorage implements IStorage {
       company_type: companyData.company_type,
       company_type_name: companyTypeNames[companyData.company_type] || "Unknown",
       rating: companyData.rating || 0,
-      director: companyData.director,
+      director: directorName,
       employees_hired: Math.min(companyData.employees_hired || 0, 10), // Cap at 10
       employees_capacity: Math.min(companyData.employees_capacity || 0, 10), // Cap at 10
       daily_income: companyData.daily_income || 0,
