@@ -1,15 +1,16 @@
-import { Pool, neonConfig } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-serverless';
-import ws from "ws";
+
+import Database from 'better-sqlite3';
+import { drizzle } from 'drizzle-orm/better-sqlite3';
 import * as schema from "@shared/schema";
 
-neonConfig.webSocketConstructor = ws;
+const sqlite = new Database('torn_analytics.db');
+export const db = drizzle(sqlite, { schema });
 
-if (!process.env.DATABASE_URL) {
-  throw new Error(
-    "DATABASE_URL must be set. Did you forget to provision a database?",
-  );
-}
+// Enable WAL mode for better performance with multiple concurrent users
+sqlite.pragma('journal_mode = WAL');
+sqlite.pragma('synchronous = NORMAL');
+sqlite.pragma('cache_size = 1000000');
+sqlite.pragma('foreign_keys = ON');
+sqlite.pragma('temp_store = MEMORY');
 
-export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-export const db = drizzle({ client: pool, schema });
+console.log('SQLite database initialized for multi-user storage');

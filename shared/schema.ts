@@ -1,9 +1,10 @@
-import { pgTable, text, serial, integer, timestamp, boolean, bigint } from "drizzle-orm/pg-core";
+
+import { sqliteTable, text, integer, blob } from "drizzle-orm/sqlite-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-export const users = pgTable("users", {
-  id: serial("id").primaryKey(),
+export const users = sqliteTable("users", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
   apiKey: text("api_key"),
@@ -25,41 +26,41 @@ export type User = typeof users.$inferSelect & {
 };
 
 // Traders table - stores our active trader IDs
-export const traders = pgTable("traders", {
-  id: serial("id").primaryKey(),
+export const traders = sqliteTable("traders", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
   playerId: integer("player_id").notNull().unique(),
   playerName: text("player_name").notNull(),
   lastTrade: integer("last_trade"),
-  isActive: boolean("is_active").default(true),
-  lastScanned: timestamp("last_scanned"),
-  createdAt: timestamp("created_at").defaultNow(),
+  isActive: integer("is_active", { mode: "boolean" }).default(true),
+  lastScanned: text("last_scanned"),
+  createdAt: text("created_at").default(new Date().toISOString()),
 });
 
 // Bazaar listings table - stores current bazaar items for each trader
-export const bazaarListings = pgTable("bazaar_listings", {
-  id: serial("id").primaryKey(),
+export const bazaarListings = sqliteTable("bazaar_listings", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
   playerId: integer("player_id").notNull(),
   itemId: integer("item_id").notNull(),
   itemName: text("item_name").notNull(),
   itemType: text("item_type").notNull(),
   quantity: integer("quantity").notNull(),
-  price: bigint("price", { mode: "number" }).notNull(),
-  marketPrice: bigint("market_price", { mode: "number" }),
-  lastUpdated: timestamp("last_updated").defaultNow(),
+  price: integer("price").notNull(),
+  marketPrice: integer("market_price"),
+  lastUpdated: text("last_updated").default(new Date().toISOString()),
 });
 
 // Scan history table - tracks when we last scanned each trader
-export const scanHistory = pgTable("scan_history", {
-  id: serial("id").primaryKey(),
+export const scanHistory = sqliteTable("scan_history", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
   playerId: integer("player_id").notNull(),
-  scanTime: timestamp("scan_time").defaultNow(),
+  scanTime: text("scan_time").default(new Date().toISOString()),
   itemsFound: integer("items_found").default(0),
-  success: boolean("success").default(true),
+  success: integer("success", { mode: "boolean" }).default(true),
   errorMessage: text("error_message"),
 });
 
-// Players table - stores indexed player data
-export const players = pgTable("players", {
+// Players table - stores indexed player data from all users
+export const players = sqliteTable("players", {
   id: integer("id").primaryKey(),
   name: text("name").notNull(),
   level: integer("level").default(1),
@@ -77,13 +78,13 @@ export const players = pgTable("players", {
   manualLabor: integer("manual_labor").default(0),
   attacksWon: integer("attacks_won").default(0),
   defendsWon: integer("defends_won").default(0),
-  isActiveLastWeek: boolean("is_active_last_week").default(true),
-  indexedAt: timestamp("indexed_at").defaultNow(),
-  lastUpdated: timestamp("last_updated").defaultNow(),
+  isActiveLastWeek: integer("is_active_last_week", { mode: "boolean" }).default(true),
+  indexedAt: text("indexed_at").default(new Date().toISOString()),
+  lastUpdated: text("last_updated").default(new Date().toISOString()),
 });
 
-// Companies table - stores indexed company data
-export const companies = pgTable("companies", {
+// Companies table - stores indexed company data from all users
+export const companies = sqliteTable("companies", {
   id: integer("id").primaryKey(),
   name: text("name").notNull(),
   companyType: integer("company_type").notNull(),
@@ -92,21 +93,21 @@ export const companies = pgTable("companies", {
   director: text("director"),
   employeesHired: integer("employees_hired").default(0),
   employeesCapacity: integer("employees_capacity").default(0),
-  dailyIncome: bigint("daily_income", { mode: "number" }).default(0),
+  dailyIncome: integer("daily_income").default(0),
   dailyCustomers: integer("daily_customers").default(0),
-  weeklyIncome: bigint("weekly_income", { mode: "number" }).default(0),
+  weeklyIncome: integer("weekly_income").default(0),
   weeklyCustomers: integer("weekly_customers").default(0),
   daysOld: integer("days_old").default(0),
-  indexedAt: timestamp("indexed_at").defaultNow(),
-  lastUpdated: timestamp("last_updated").defaultNow(),
+  indexedAt: text("indexed_at").default(new Date().toISOString()),
+  lastUpdated: text("last_updated").default(new Date().toISOString()),
 });
 
-// Factions table - stores indexed faction data
-export const factions = pgTable("factions", {
+// Factions table - stores indexed faction data from all users
+export const factions = sqliteTable("factions", {
   id: integer("id").primaryKey(),
   name: text("name").notNull(),
   tag: text("tag").notNull(),
-  respect: bigint("respect", { mode: "number" }).default(0),
+  respect: integer("respect").default(0),
   capacity: integer("capacity").default(0),
   members: integer("members").default(0),
   leader: text("leader"),
@@ -116,8 +117,8 @@ export const factions = pgTable("factions", {
   attacksWon: integer("attacks_won").default(0),
   attacksLost: integer("attacks_lost").default(0),
   elo: integer("elo").default(0),
-  indexedAt: timestamp("indexed_at").defaultNow(),
-  lastUpdated: timestamp("last_updated").defaultNow(),
+  indexedAt: text("indexed_at").default(new Date().toISOString()),
+  lastUpdated: text("last_updated").default(new Date().toISOString()),
 });
 
 export type Trader = typeof traders.$inferSelect;

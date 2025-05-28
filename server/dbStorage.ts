@@ -344,15 +344,15 @@ export class DbStorage implements IStorage {
       attacksWon: playerData.attacks?.wins || 0,
       defendsWon: playerData.defends?.wins || 0,
       isActiveLastWeek: true,
-      lastUpdated: new Date()
+      lastUpdated: new Date().toISOString()
     };
 
     await db.insert(players).values(playerRecord).onConflictDoUpdate({
       target: players.id,
-      set: { ...playerRecord, lastUpdated: new Date() }
+      set: { ...playerRecord, lastUpdated: new Date().toISOString() }
     });
 
-    console.log(`Stored player ${playerId} data successfully in database`);
+    console.log(`Stored player ${playerId} data successfully in database (multi-user data)`);
   }
 
   async storeCompanyData(companyId: number, companyData: any): Promise<void> {
@@ -393,12 +393,15 @@ export class DbStorage implements IStorage {
       lastUpdated: new Date()
     };
 
-    await db.insert(companies).values(companyRecord).onConflictDoUpdate({
+    await db.insert(companies).values({
+      ...companyRecord,
+      lastUpdated: new Date().toISOString()
+    }).onConflictDoUpdate({
       target: companies.id,
-      set: { ...companyRecord, lastUpdated: new Date() }
+      set: { ...companyRecord, lastUpdated: new Date().toISOString() }
     });
 
-    console.log(`Stored company ${companyId} data successfully in database`);
+    console.log(`Stored company ${companyId} data successfully in database (multi-user data)`);
   }
 
   async storeFactionData(factionId: number, factionData: any): Promise<void> {
@@ -419,12 +422,15 @@ export class DbStorage implements IStorage {
       lastUpdated: new Date()
     };
 
-    await db.insert(factions).values(factionRecord).onConflictDoUpdate({
+    await db.insert(factions).values({
+      ...factionRecord,
+      lastUpdated: new Date().toISOString()
+    }).onConflictDoUpdate({
       target: factions.id,
-      set: { ...factionRecord, lastUpdated: new Date() }
+      set: { ...factionRecord, lastUpdated: new Date().toISOString() }
     });
 
-    console.log(`Stored faction ${factionId} data successfully in database`);
+    console.log(`Stored faction ${factionId} data successfully in database (multi-user data)`);
   }
 
   async searchCompanies(params: CompanySearchParams): Promise<any> {
