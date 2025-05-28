@@ -58,6 +58,71 @@ export const scanHistory = pgTable("scan_history", {
   errorMessage: text("error_message"),
 });
 
+// Players table - stores indexed player data
+export const players = pgTable("players", {
+  id: integer("id").primaryKey(),
+  name: text("name").notNull(),
+  level: integer("level").default(1),
+  status: text("status").default("Offline"),
+  lastAction: text("last_action"),
+  factionId: integer("faction_id"),
+  companyId: integer("company_id"),
+  strengthStats: integer("strength_stats").default(0),
+  defenseStats: integer("defense_stats").default(0),
+  speedStats: integer("speed_stats").default(0),
+  dexterityStats: integer("dexterity_stats").default(0),
+  totalStats: integer("total_stats").default(0),
+  intelligence: integer("intelligence").default(0),
+  endurance: integer("endurance").default(0),
+  manualLabor: integer("manual_labor").default(0),
+  attacksWon: integer("attacks_won").default(0),
+  defendsWon: integer("defends_won").default(0),
+  isActiveLastWeek: boolean("is_active_last_week").default(true),
+  indexedAt: timestamp("indexed_at").defaultNow(),
+  lastUpdated: timestamp("last_updated").defaultNow(),
+});
+
+// Companies table - stores indexed company data
+export const companies = pgTable("companies", {
+  id: integer("id").primaryKey(),
+  name: text("name").notNull(),
+  companyType: integer("company_type").notNull(),
+  companyTypeName: text("company_type_name"),
+  rating: integer("rating").default(0),
+  director: text("director"),
+  employeesHired: integer("employees_hired").default(0),
+  employeesCapacity: integer("employees_capacity").default(0),
+  dailyIncome: bigint("daily_income", { mode: "number" }).default(0),
+  dailyCustomers: integer("daily_customers").default(0),
+  weeklyIncome: bigint("weekly_income", { mode: "number" }).default(0),
+  weeklyCustomers: integer("weekly_customers").default(0),
+  daysOld: integer("days_old").default(0),
+  indexedAt: timestamp("indexed_at").defaultNow(),
+  lastUpdated: timestamp("last_updated").defaultNow(),
+});
+
+// Factions table - stores indexed faction data
+export const factions = pgTable("factions", {
+  id: integer("id").primaryKey(),
+  name: text("name").notNull(),
+  tag: text("tag").notNull(),
+  respect: bigint("respect", { mode: "number" }).default(0),
+  capacity: integer("capacity").default(0),
+  members: integer("members").default(0),
+  leader: text("leader"),
+  territory: integer("territory").default(0),
+  bestChain: integer("best_chain").default(0),
+  age: integer("age").default(0),
+  attacksWon: integer("attacks_won").default(0),
+  attacksLost: integer("attacks_lost").default(0),
+  elo: integer("elo").default(0),
+  indexedAt: timestamp("indexed_at").defaultNow(),
+  lastUpdated: timestamp("last_updated").defaultNow(),
+});
+
 export type Trader = typeof traders.$inferSelect;
 export type BazaarListing = typeof bazaarListings.$inferSelect;
 export type ScanHistory = typeof scanHistory.$inferSelect;
+export type Player = typeof players.$inferSelect;
+export type Company = typeof companies.$inferSelect;
+export type Faction = typeof factions.$inferSelect;
