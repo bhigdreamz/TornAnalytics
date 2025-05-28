@@ -7,7 +7,7 @@ async function runMigration() {
   try {
     console.log("Creating SQLite database and tables for multi-user storage...");
     
-    const sqlite = new Database('torn_analytics.db');
+    const sqlite = new Database('./torn_analytics.db');
     const db = drizzle(sqlite);
 
     // Enable SQLite optimizations
