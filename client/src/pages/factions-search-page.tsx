@@ -77,7 +77,14 @@ export default function FactionsSearchPage() {
   const [sortBy, setSortBy] = useState("respect-desc");
   const [hasSearched, setHasSearched] = useState(false);
   
-  const { data, isLoading, isError, refetch, isFetching } = useQuery<FactionSearchResponse>({
+  // Query for default faction list (sorted by respect)
+  const { data: defaultData, isLoading: defaultLoading } = useQuery<FactionSearchResponse>({
+    queryKey: ["/api/factions/search", 1, 0, 10000000, 1, 100, 0, 0, "respect-desc", ""],
+    enabled: !!user?.apiKey && !hasSearched
+  });
+
+  // Query for filtered search results
+  const { data: searchData, isLoading: searchLoading, isError, refetch, isFetching } = useQuery<FactionSearchResponse>({
     queryKey: [
       "/api/factions/search", 
       page, 
@@ -92,6 +99,10 @@ export default function FactionsSearchPage() {
     ],
     enabled: !!user?.apiKey && hasSearched
   });
+
+  // Use appropriate data based on search state
+  const data = hasSearched ? searchData : defaultData;
+  const isLoading = hasSearched ? searchLoading : defaultLoading;
   
   // Handle search
   const handleSearch = () => {
@@ -348,7 +359,7 @@ export default function FactionsSearchPage() {
         <Card className="border-gray-700 bg-game-dark shadow-game">
           <CardHeader>
             <div className="flex justify-between items-center">
-              <CardTitle>Faction Search Results</CardTitle>
+              <CardTitle>{hasSearched ? "Faction Search Results" : "Top Factions by Respect"}</CardTitle>
               {data && (
                 <Button 
                   variant="outline" 

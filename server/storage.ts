@@ -770,34 +770,51 @@ export class MemStorage implements IStorage {
   }
 
   private generateMockCompanies() {
-    const companyTypes = ["Adult", "Logistics", "Medical", "Casino", "Law", "Computer", "Firework", "Flower"];
+    const companyTypeMapping = {
+      "1": "Adult Novelties", "2": "Alcohol", "3": "Ammunition", "4": "Armor", "5": "Automobile",
+      "6": "Books", "7": "Candy", "8": "Car Racing", "9": "Casino", "10": "Charity",
+      "11": "Clothing", "12": "Computer", "13": "Cruise Line", "14": "Drugs", "15": "Electronics",
+      "16": "Fireworks", "17": "Flowers", "18": "Food", "19": "Furniture", "20": "Game Development",
+      "21": "Gifts", "22": "Guns", "23": "Health", "24": "Home & Garden", "25": "Hunting",
+      "26": "Import & Export", "27": "Jewelry", "28": "Law", "29": "Legal Services", "30": "Local Services",
+      "31": "Logistics", "32": "Media", "33": "Medical", "34": "Mining", "35": "Music",
+      "36": "Oil & Gas", "37": "Real Estate", "38": "Sports", "39": "Sweet Shop", "40": "Toys"
+    };
+
     const companyNames = [
-      "Tech Solutions Inc", "Global Logistics", "City Medical Center", "Golden Casino",
-      "Legal Associates", "Code Masters", "Fireworks Factory", "Bloom Gardens",
-      "Data Systems", "Transport Hub", "Health Plus", "Lucky Palace",
-      "Justice Partners", "Digital Works", "Spark Factory", "Rose Gardens"
+      "Elite Solutions", "Global Corp", "City Center", "Golden Palace",
+      "Professional Services", "Tech Masters", "Premium Factory", "Quality Gardens",
+      "Advanced Systems", "Express Hub", "Health Plus", "Lucky Star",
+      "Prime Partners", "Digital Works", "Superior Factory", "Beautiful Gardens"
     ];
 
-    for (let i = 1; i <= 200; i++) {
-      const company = {
-        id: 100000 + i,
-        name: companyNames[Math.floor(Math.random() * companyNames.length)] + ` ${i}`,
-        type: companyTypes[Math.floor(Math.random() * companyTypes.length)],
-        rating: Math.floor(Math.random() * 10) + 1,
-        employees: {
-          current: Math.floor(Math.random() * 50) + 5,
-          max: Math.floor(Math.random() * 20) + 50
-        },
-        director: {
-          id: 2000000 + i,
-          name: `Director${i}`
-        },
-        daily_income: Math.floor(Math.random() * 1000000) + 50000,
-        weekly_income: Math.floor(Math.random() * 7000000) + 350000,
-        days_old: Math.floor(Math.random() * 1000) + 30,
-        value: Math.floor(Math.random() * 50000000) + 1000000
-      };
-      this.companiesData.set(company.id, company);
+    // Generate companies for each type
+    for (let typeId = 1; typeId <= 40; typeId++) {
+      const typeKey = typeId.toString();
+      const typeName = companyTypeMapping[typeKey];
+      
+      // Generate 5 companies per type
+      for (let i = 1; i <= 5; i++) {
+        const company = {
+          id: 100000 + (typeId * 100) + i,
+          name: `${typeName} ${companyNames[Math.floor(Math.random() * companyNames.length)]} ${i}`,
+          type: typeKey, // Store as string ID
+          rating: Math.floor(Math.random() * 10) + 1,
+          employees: {
+            current: Math.floor(Math.random() * 50) + 5,
+            max: Math.floor(Math.random() * 20) + 50
+          },
+          director: {
+            id: 2000000 + (typeId * 100) + i,
+            name: `Director${typeId}_${i}`
+          },
+          daily_income: Math.floor(Math.random() * 1000000) + 50000,
+          weekly_income: Math.floor(Math.random() * 7000000) + 350000,
+          days_old: Math.floor(Math.random() * 1000) + 30,
+          value: Math.floor(Math.random() * 50000000) + 1000000
+        };
+        this.companiesData.set(company.id, company);
+      }
     }
   }
 

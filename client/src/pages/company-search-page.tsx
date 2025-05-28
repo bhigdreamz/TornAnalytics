@@ -65,7 +65,7 @@ export default function CompanySearchPage() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
-  const [companyType, setCompanyType] = useState("all");
+  const [companyType, setCompanyType] = useState("1");
   const [minRating, setMinRating] = useState(1);
   const [maxRating, setMaxRating] = useState(10);
   const [minEmployees, setMinEmployees] = useState(0);
@@ -75,7 +75,14 @@ export default function CompanySearchPage() {
   const [sortBy, setSortBy] = useState("rating-desc");
   const [hasSearched, setHasSearched] = useState(false);
   
-  const { data, isLoading, isError, refetch, isFetching } = useQuery<CompanySearchResponse>({
+  // Query for default company list (Adult Novelties - type 1)
+  const { data: defaultData, isLoading: defaultLoading } = useQuery<CompanySearchResponse>({
+    queryKey: ["/api/companies/search", 1, "1", 1, 10, 0, 100, 0, "rating-desc", ""],
+    enabled: !!user?.apiKey && !hasSearched
+  });
+
+  // Query for filtered search results
+  const { data: searchData, isLoading: searchLoading, isError, refetch, isFetching } = useQuery<CompanySearchResponse>({
     queryKey: [
       "/api/companies/search", 
       page, 
@@ -90,6 +97,10 @@ export default function CompanySearchPage() {
     ],
     enabled: !!user?.apiKey && hasSearched
   });
+
+  // Use appropriate data based on search state
+  const data = hasSearched ? searchData : defaultData;
+  const isLoading = hasSearched ? searchLoading : defaultLoading;
   
   // Handle search
   const handleSearch = () => {
@@ -175,30 +186,94 @@ export default function CompanySearchPage() {
                   >
                     <span>
                       {companyType === "all" ? "All Types" : 
-                       companyType === "Adult" ? "Adult Novelty" :
-                       companyType === "Logistics" ? "Logistics" :
-                       companyType === "Medical" ? "Medical" :
-                       companyType === "Casino" ? "Casino" :
-                       companyType === "Law" ? "Law Firm" :
-                       companyType === "Computer" ? "Computer" :
-                       companyType === "Firework" ? "Firework" :
-                       companyType === "Flower" ? "Flower" : "All Types"}
+                       companyType === "1" ? "Adult Novelties" :
+                       companyType === "2" ? "Alcohol" :
+                       companyType === "3" ? "Ammunition" :
+                       companyType === "4" ? "Armor" :
+                       companyType === "5" ? "Automobile" :
+                       companyType === "6" ? "Books" :
+                       companyType === "7" ? "Candy" :
+                       companyType === "8" ? "Car Racing" :
+                       companyType === "9" ? "Casino" :
+                       companyType === "10" ? "Charity" :
+                       companyType === "11" ? "Clothing" :
+                       companyType === "12" ? "Computer" :
+                       companyType === "13" ? "Cruise Line" :
+                       companyType === "14" ? "Drugs" :
+                       companyType === "15" ? "Electronics" :
+                       companyType === "16" ? "Fireworks" :
+                       companyType === "17" ? "Flowers" :
+                       companyType === "18" ? "Food" :
+                       companyType === "19" ? "Furniture" :
+                       companyType === "20" ? "Game Development" :
+                       companyType === "21" ? "Gifts" :
+                       companyType === "22" ? "Guns" :
+                       companyType === "23" ? "Health" :
+                       companyType === "24" ? "Home & Garden" :
+                       companyType === "25" ? "Hunting" :
+                       companyType === "26" ? "Import & Export" :
+                       companyType === "27" ? "Jewelry" :
+                       companyType === "28" ? "Law" :
+                       companyType === "29" ? "Legal Services" :
+                       companyType === "30" ? "Local Services" :
+                       companyType === "31" ? "Logistics" :
+                       companyType === "32" ? "Media" :
+                       companyType === "33" ? "Medical" :
+                       companyType === "34" ? "Mining" :
+                       companyType === "35" ? "Music" :
+                       companyType === "36" ? "Oil & Gas" :
+                       companyType === "37" ? "Real Estate" :
+                       companyType === "38" ? "Sports" :
+                       companyType === "39" ? "Sweet Shop" :
+                       companyType === "40" ? "Toys" : "Adult Novelties"}
                     </span>
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="m6 9 6 6 6-6"/>
                     </svg>
                   </div>
                   
-                  <div id="company-type-dropdown" className="absolute z-10 w-full mt-1 bg-background border border-border rounded-md shadow-lg hidden">
+                  <div id="company-type-dropdown" className="absolute z-10 w-full mt-1 bg-background border border-border rounded-md shadow-lg hidden max-h-60 overflow-y-auto">
                     <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("all"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>All Types</div>
-                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("Adult"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Adult Novelty</div>
-                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("Logistics"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Logistics</div>
-                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("Medical"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Medical</div>
-                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("Casino"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Casino</div>
-                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("Law"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Law Firm</div>
-                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("Computer"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Computer</div>
-                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("Firework"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Firework</div>
-                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("Flower"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Flower</div>
+                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("1"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Adult Novelties</div>
+                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("2"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Alcohol</div>
+                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("3"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Ammunition</div>
+                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("4"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Armor</div>
+                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("5"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Automobile</div>
+                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("6"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Books</div>
+                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("7"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Candy</div>
+                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("8"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Car Racing</div>
+                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("9"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Casino</div>
+                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("10"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Charity</div>
+                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("11"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Clothing</div>
+                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("12"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Computer</div>
+                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("13"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Cruise Line</div>
+                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("14"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Drugs</div>
+                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("15"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Electronics</div>
+                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("16"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Fireworks</div>
+                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("17"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Flowers</div>
+                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("18"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Food</div>
+                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("19"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Furniture</div>
+                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("20"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Game Development</div>
+                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("21"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Gifts</div>
+                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("22"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Guns</div>
+                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("23"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Health</div>
+                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("24"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Home & Garden</div>
+                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("25"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Hunting</div>
+                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("26"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Import & Export</div>
+                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("27"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Jewelry</div>
+                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("28"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Law</div>
+                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("29"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Legal Services</div>
+                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("30"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Local Services</div>
+                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("31"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Logistics</div>
+                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("32"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Media</div>
+                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("33"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Medical</div>
+                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("34"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Mining</div>
+                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("35"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Music</div>
+                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("36"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Oil & Gas</div>
+                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("37"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Real Estate</div>
+                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("38"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Sports</div>
+                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("39"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Sweet Shop</div>
+                    <div className="p-2 hover:bg-accent cursor-pointer text-foreground" onClick={() => { setCompanyType("40"); document.getElementById("company-type-dropdown")?.classList.add("hidden"); }}>Toys</div>
                   </div>
                 </div>
               </div>
@@ -332,7 +407,7 @@ export default function CompanySearchPage() {
         <Card className="border-gray-700 bg-game-dark shadow-game">
           <CardHeader>
             <div className="flex justify-between items-center">
-              <CardTitle>Company Search Results</CardTitle>
+              <CardTitle>{hasSearched ? "Company Search Results" : "Adult Novelties Companies"}</CardTitle>
               {data && (
                 <Button 
                   variant="outline" 
