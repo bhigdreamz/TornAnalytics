@@ -771,14 +771,14 @@ export class MemStorage implements IStorage {
 
   private generateMockCompanies() {
     const companyTypeMapping = {
-      "1": "Adult Novelties", "2": "Alcohol", "3": "Ammunition", "4": "Armor", "5": "Automobile",
-      "6": "Books", "7": "Candy", "8": "Car Racing", "9": "Casino", "10": "Charity",
-      "11": "Clothing", "12": "Computer", "13": "Cruise Line", "14": "Drugs", "15": "Electronics",
-      "16": "Fireworks", "17": "Flowers", "18": "Food", "19": "Furniture", "20": "Game Development",
-      "21": "Gifts", "22": "Guns", "23": "Health", "24": "Home & Garden", "25": "Hunting",
-      "26": "Import & Export", "27": "Jewelry", "28": "Law", "29": "Legal Services", "30": "Local Services",
-      "31": "Logistics", "32": "Media", "33": "Medical", "34": "Mining", "35": "Music",
-      "36": "Oil & Gas", "37": "Real Estate", "38": "Sports", "39": "Sweet Shop", "40": "Toys"
+      "1": "Grocery", "2": "Gas", "3": "Clothing", "4": "Electronics", "5": "Furniture",
+      "6": "Pharmacy", "7": "Restaurant", "8": "Car Dealership", "9": "Adult Novelties", "10": "Logistics",
+      "11": "Casino", "12": "Sweet Shop", "13": "Flower Shop", "14": "Law Firm", "15": "Gun Shop",
+      "16": "Mechanic", "17": "Zoo", "18": "Fireworks", "19": "Nightclub", "20": "Security",
+      "21": "Detective", "22": "Hair Salon", "23": "Music Store", "24": "Cruise Line", "25": "Oil Rig",
+      "26": "Television", "27": "Candle Shop", "28": "Farm", "29": "Newspaper", "30": "Mining",
+      "31": "Game Shop", "32": "Cyber Cafe", "33": "Clothing", "34": "Lingerie", "35": "Private Security",
+      "36": "Jail", "37": "Toy Shop", "38": "Ice Cream", "39": "Bakery", "40": "Book Store"
     };
 
     const companyNames = [

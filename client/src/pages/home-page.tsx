@@ -29,11 +29,7 @@ export default function HomePage() {
     </>
   );
 }
-```
 
-```jsx
-// CompanySearchCard.jsx
-import React from 'react';
 
 const CompanySearchCard = () => {
   return (
